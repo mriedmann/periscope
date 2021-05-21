@@ -1,0 +1,7 @@
+options:
+  tcp-timeout: 1.0
+checks:
+  - http: https://httpstat.us/200   
+  - tcp:  8.8.8.8:53   
+  - ping: 8.8.8.8   
+  - dns:  'dns.google=8.8.8.8,8.8.4.4' 
