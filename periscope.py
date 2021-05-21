@@ -73,7 +73,7 @@ def err(msg):
 def check(help):
     def wrap(f):
         sig = signature(f)
-        check_args[f] = list(sig.parameters.keys())[1:]
+        check_args[f.__name__] = list(sig.parameters.keys())[1:]
         checks.append(f)
         parser.add_argument('--%s' % f.__name__, nargs='*', help=help)
         def wrapped_f(*args, **kwargs):
@@ -173,7 +173,7 @@ def gen_commands_from_cli(args):
         arg = f.__name__
         for param in (getattr(args, arg, []) or []):
             call_args = {}
-            for check_arg in check_args[f]:
+            for check_arg in check_args[arg]:
                 call_args[check_arg] = getattr(args, check_arg)
             yield (f, param, call_args)
 
@@ -183,9 +183,13 @@ def gen_commands_from_yaml(filepath, args):
         for opt in y['options']:
             setattr(args,opt,y['options'][opt])
         for check in y['checks']:
-            f = globals()[next(iter(check))]
-            param = check[next(iter(check))]
-            yield (f, param, args)
+            arg = next(iter(check))
+            f = globals()[arg]
+            call_args = {}
+            for check_arg in check_args[arg]:
+                call_args[check_arg] = getattr(args, check_arg)
+            param = check[arg]
+            yield (f, param, call_args)
 
 if __name__ == '__main__':
     args = parser.parse_args()
