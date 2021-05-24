@@ -1,23 +1,19 @@
 #!/usr/bin/env /usr/bin/python3
 
 import argparse
-import inspect
-from logging import fatal
-import re
 from termcolor import colored
 import icmplib
 import socket
 from netaddr import IPNetwork, IPAddress
 import urllib3
-from multiprocessing import Process
 import yaml
 from inspect import signature
+import concurrent.futures
 
 urllib3.disable_warnings() #suppress cert warning
 
 #### globals
 
-ret_code=0
 checks = []
 check_args = {}
 quiet = False
@@ -56,19 +52,32 @@ parser.add_argument("--ca-certs",
 
 #### helper functions
 
-def ok(msg):
-    if not quiet:
-        print(colored('[OK]    ', 'green'), msg)
+class CheckResult:
+    msg: str = ""
 
-def warn(msg):
-    if not quiet:
-        print(colored('[WARN]  ', 'yellow'), msg) 
+    def __init__(self, msg) -> None:
+        self.msg = msg
 
-def err(msg):
-    global ret_code
-    ret_code = 1
-    if not quiet:
-        print(colored('[ERROR] ', 'red'), msg) 
+class Ok(CheckResult):
+    pass
+
+class Warn(Ok):
+    pass
+
+class Err(CheckResult):
+    pass
+
+def print_results(results: list[CheckResult]):
+    if quiet:
+        return
+    
+    for result in results:
+        if isinstance(result, Warn):
+            print(colored('[WARN]  ', 'yellow'), result.msg) 
+        elif isinstance(result, Ok):
+            print(colored('[OK]    ', 'green'), result.msg)
+        elif isinstance(result, Err):
+            print(colored('[ERROR] ', 'red'), result.msg) 
 
 def check(help):
     def wrap(f):
@@ -77,23 +86,23 @@ def check(help):
         checks.append(f)
         parser.add_argument('--%s' % f.__name__, nargs='*', help=help)
         def wrapped_f(*args, **kwargs):
-            f(*args, **kwargs)
+            return f(*args, **kwargs)
         return wrapped_f
     return wrap
 
 #### checks
 
 @check("ICMP ping check")
-def ping(x, ping_count):
+def ping(x, ping_count) -> CheckResult:
     host = icmplib.ping(x, privileged=False,count=ping_count)
     if host.is_alive:
         if host.packet_loss > 0.0:
-            return warn(f"ICMP '{x}' ({host.address}) unreliable! packet loss {host.packet_loss*100}%")
-        return ok(f"ICMP '{x}' reachable ({host.avg_rtt}ms)")
-    return err(f"ICMP '{x}' unreachable")
+            return Warn(f"ICMP '{x}' ({host.address}) unreliable! packet loss {host.packet_loss*100}%")
+        return Ok(f"ICMP '{x}' reachable ({host.avg_rtt}ms)")
+    return Err(f"ICMP '{x}' unreachable")
 
 @check("HTTP request checking on response status (not >=400)")
-def http(x, http_method, ca_certs):
+def http(x, http_method, ca_certs) -> CheckResult:
     method = http_method
     if ca_certs:
         h = urllib3.PoolManager(ca_certs=ca_certs)
@@ -102,36 +111,38 @@ def http(x, http_method, ca_certs):
     try:
         response = h.request(method, x)
         if 200 <= response.status <= 299:
-            ok(f"HTTP {method} to '{x}' returned {response.status}")
+            return Ok(f"HTTP {method} to '{x}' returned {response.status}")
         elif 300 >= response.status >= 399:
-            warn(f"HTTP {method} to '{x}' returned {response.status}")
-        else:
-            err(f"HTTP {method} to '{x}' returned {response.status}")
+            return Warn(f"HTTP {method} to '{x}' returned {response.status}")
+        return Err(f"HTTP {method} to '{x}' returned {response.status}")
     except urllib3.exceptions.MaxRetryError as e:
         if type(e.reason) == urllib3.exceptions.SSLError:
-            warn(f"SSL Certificate verification failed on '{x}' ({e.reason})")
-            http(x, http_method, None)
-        else:
-            err(f"HTTP {method} to '{x}' failed ({e.reason})")
+            result = http(x, http_method, None)
+            msg = f"{result.msg}. SSL Certificate verification failed on '{x}' ({e.reason})"
+            if isinstance(result, Ok):
+                return Warn(msg)
+            else:
+                return Err(msg)
+        return Err(f"HTTP {method} to '{x}' failed ({e.reason})")
     finally:
         h.clear()
 
 @check("Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)")
-def tcp(x, tcp_timeout):
+def tcp(x, tcp_timeout) -> CheckResult:
     (address, port_text) = x.split(':')
     s = socket.socket()
     s.settimeout(tcp_timeout)
     port = int(port_text)
     try:
         s.connect((address, port)) 
-        ok(f"TCP connection successfully established to port {port} on {address}")
+        return Ok(f"TCP connection successfully established to port {port} on {address}")
     except Exception as e: 
-        err(f"TCP connection failed on port {port} for {address} ({e})")
+        return Err(f"TCP connection failed on port {port} for {address} ({e})")
     finally:
         s.close()
 
 @check("DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36) NOTE: it is possible to use subnets as target using CIDR notation")
-def dns(x):
+def dns(x) -> CheckResult:
     if '=' in x:
         (hostname, target) = x.split('=')
         if ',' in target:
@@ -142,31 +153,26 @@ def dns(x):
         hostname = x
         target = None
 
-    ip = socket.gethostbyname(hostname)
-    if not ip:
-        return err(f"DNS resolution for '{hostname}' failed")
-    ok(f"DNS resolution for '{hostname}' successfull ({ip})")
+    try:
+        ip = socket.gethostbyname(hostname)
+    except socket.gaierror as e:
+        return Err(f"DNS resolution for '{hostname}' failed ({e})")
 
     if '/' in target:
         if any(IPAddress(ip) in IPNetwork(t) for t in targets):
-            ok(f"DNS resolution for '{hostname}' returned ip '{ip}' in expected subnet '{target}'")
-        else:
-            err(f"DNS resolution for '{hostname}' did not return ip '{ip}' in expected subnet '{target}'")
+            return Ok(f"DNS resolution for '{hostname}' returned ip '{ip}' in expected subnet '{target}'")
+        return Err(f"DNS resolution for '{hostname}' did not return ip '{ip}' in expected subnet '{target}'")
     elif target:
         if any(ip == t for t in targets):
-            ok(f"DNS resolution for '{hostname}' returned expected ip '{ip}'")
-        else:
-            err(f"DNS resolution for '{hostname}' did not return expected ip '{target}' but '{ip}'")
+            return Ok(f"DNS resolution for '{hostname}' returned expected ip '{ip}'")
+        return Err(f"DNS resolution for '{hostname}' did not return expected ip '{target}' but '{ip}'")
 
 
 def run(commands):
-    processes = []
-    for cmd in commands:
-        p = Process(target=cmd[0], kwargs={'x': cmd[1], **cmd[2]})
-        processes.append(p)
-        p.start()
-    for p in processes:
-        p.join()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(cmd[0], **{'x': cmd[1], **cmd[2]}) for cmd in commands]
+        for future in futures:
+            yield future.result()
 
 def gen_commands_from_cli(args):
     for f in checks:
@@ -197,5 +203,10 @@ if __name__ == '__main__':
         commands = gen_commands_from_yaml(args.file, args)
     else:
         commands = gen_commands_from_cli(args)      
-    run(commands)
-    exit(ret_code)
+    ret_code = 0
+    results = run(commands)
+    print_results(results)
+    if any(isinstance(x, Err) for x in results):
+        exit(1)
+    else:
+        exit(0)
