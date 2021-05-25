@@ -1,6 +1,6 @@
 from typing import Type
 import unittest
-from periscope import Ok, Err, ping, dns, http, tcp
+from checks import Ok, Err, ping, dns, http, tcp
 from parameterized import parameterized
 
 class PeriscopeTests(unittest.TestCase):
