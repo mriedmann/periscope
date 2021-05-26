@@ -5,8 +5,6 @@ from netaddr import IPNetwork, IPAddress
 from functools import wraps
 import urllib3
 
-urllib3.disable_warnings() #suppress cert warning
-
 checks = {}
 
 def check(help):
@@ -49,6 +47,7 @@ def http(url, http_method, ca_certs) -> CheckResult:
     if ca_certs:
         h = urllib3.PoolManager(ca_certs=ca_certs)
     else:
+        urllib3.disable_warnings()
         h = urllib3.PoolManager()
     try:
         response = h.request(method, url)
