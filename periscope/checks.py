@@ -62,21 +62,21 @@ def http(url, http_method, ca_certs) -> CheckResult:
         urllib3.disable_warnings()
         h = urllib3.PoolManager()
     try:
-        response = h.request(method, url)
+        response = h.request(method, url, retries=False)
         if 200 <= response.status <= 299:
             return Ok(f"HTTP {method} to '{url}' returned {response.status}")
-        elif 300 >= response.status >= 399:
+        elif 300 <= response.status <= 399:
             return Warn(f"HTTP {method} to '{url}' returned {response.status}")
         return Err(f"HTTP {method} to '{url}' returned {response.status}")
-    except urllib3.exceptions.MaxRetryError as e:
-        if type(e.reason) == urllib3.exceptions.SSLError:
+    except Exception as e:
+        if hasattr(e, 'reason') and type(e.reason) == urllib3.exceptions.SSLError:
             result = http(url, http_method, None)
             msg = f"{result.msg}. SSL Certificate verification failed on '{url}' ({e.reason})"
             if isinstance(result, Ok):
                 return Warn(msg)
             else:
                 return Err(msg)
-        return Err(f"HTTP {method} to '{url}' failed ({e.reason})")
+        return Err(f"HTTP {method} to '{url}' failed ({e})")
     finally:
         h.clear()
 
