@@ -95,7 +95,8 @@ def tcp(host, port, tcp_timeout) -> CheckResult:
         s.close()
 
 
-@check("DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36) NOTE: it is possible to use subnets as target using CIDR notation")
+@check("DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36) "
+       "NOTE: it is possible to use subnets as target using CIDR notation")
 def dns(name, ips) -> CheckResult:
     try:
         ip = socket.gethostbyname(name)

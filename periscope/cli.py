@@ -1,5 +1,5 @@
 import argparse
-from checks import checks
+from periscope.checks import checks
 import certifi
 
 def parse_args(args=None):

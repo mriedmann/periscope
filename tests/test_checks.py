@@ -1,7 +1,7 @@
 from typing import Type
 import unittest
 import certifi
-from checks import Ok, Err, ping, dns, http, tcp
+from periscope.checks import Ok, Err, ping, dns, http, tcp
 from parameterized import parameterized
 
 

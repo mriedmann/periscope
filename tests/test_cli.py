@@ -1,6 +1,6 @@
 import unittest
 from parameterized import parameterized
-from cli import parse_args, get_commands_and_config_from_args
+from periscope.cli import parse_args, get_commands_and_config_from_args
 
 
 class CliTests(unittest.TestCase):

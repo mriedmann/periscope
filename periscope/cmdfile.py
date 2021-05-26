@@ -13,7 +13,8 @@ def get_commands_from_config(c):
 
     def scan(x):
         if 'type' in x.keys():
-            commands.append(x)
+            final_x = dict(filter(lambda elem: not (isinstance(elem[1], list) or isinstance(elem[1], dict)), x.items()))
+            commands.append(final_x)
         else:
             for key in x:
                 scan(x[key])

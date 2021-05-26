@@ -1,10 +1,10 @@
 #!/usr/bin/env /usr/bin/python3
 
-from cli import get_commands_and_config_from_args, parse_args
+from periscope.cli import get_commands_and_config_from_args, parse_args
 from termcolor import colored
 import concurrent.futures
-from cmdfile import get_config_from_yamlfile, get_commands_from_config
-from checks import Ok, Warn, Err, CheckResult, checks
+from periscope.cmdfile import get_config_from_yamlfile, get_commands_from_config
+from periscope.checks import Ok, Warn, Err, CheckResult, checks
 import pprint
 
 commands = []
@@ -33,9 +33,9 @@ def run_checks(commands):
 def gen_calls(commands, config):
     for command in commands:
         f_name = command.pop('type')
-        if f_name not in globals():
+        if f_name not in checks:
             raise Exception(f"can't find check of type '{f_name}'")
-        f = globals()[f_name]
+        f = checks[f_name]['f']
         call_args = {}
         l_config = {**config, **command}
         for check_arg in checks[f_name]['args']:
