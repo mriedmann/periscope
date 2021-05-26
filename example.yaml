@@ -1,7 +1,35 @@
-options:
-  tcp-timeout: 1.0
-checks:
-  - http: https://httpstat.us/200   
-  - tcp:  8.8.8.8:53   
-  - ping: 8.8.8.8   
-  - dns:  'dns.google=8.8.8.8,8.8.4.4' 
+a:
+  a1:
+    check1:
+      type: http
+      url: https://httpstat.us/200
+    check2:
+      type: tcp
+      host: 8.8.8.8
+      port: 53
+      nesting_check:
+        type: tcp
+        host: 0.0.0.0
+        port: 0
+  a2:
+    check3:
+      type: http
+      url: https://httpstat.us/201
+    check4:
+      type: tcp
+      host: 1.1.1.1
+      port: 53
+      tcp_timeout: 0.1
+b:
+  type: http
+  url: https://httpstat.us/301
+c:
+  c1:
+    c11:
+      c111:
+        check5:
+          type: dns
+          name: dns.google
+          ips:
+            - 8.8.8.8
+            - 8.8.4.4

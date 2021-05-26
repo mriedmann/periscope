@@ -3,7 +3,7 @@ tests = $(wildcard *.tests.py)
 
 requirements.txt:
 	python -m pip install -U --user pipreqs
-	pipreqs --force ./
+	pipreqs --print ./ | sort > requirements.txt
 
 update_dependencies: requirements.txt
 	python -m pip install -U --user -r requirements.txt

@@ -27,4 +27,88 @@ $ python periscope.py \
 [OK]     HTTP HEAD to 'https://httpstat.us/200' returned 200
 ```
 
-You can also use YAML to configure check. Try `python periscope.py -f example.yaml`.
+Alternatively, just use the pre-built docker-image.
+
+```bash
+$ docker run --rm docker.io/mriedmann/periscope --ping 8.8.8.8
+[OK]     ICMP '8.8.8.8' reachable (30.017ms)
+```
+
+### Multiple checks of same type
+
+To define e.g. multiple ping checks, just provide a space-separated list to the `--ping` argument. 
+
+```bash
+$ python periscope.py --ping 1.1.1.1 8.8.8.8 1.0.0.1 8.8.4.4
+[OK]     ICMP '1.1.1.1' reachable (21.138ms)
+[OK]     ICMP '8.8.8.8' reachable (30.992ms)
+[OK]     ICMP '1.0.0.1' reachable (24.709ms)
+[OK]     ICMP '8.8.4.4' reachable (36.364ms)
+````
+
+### Global configuration
+
+There are some global settings like http-method or tcp-timeout (see `python periscope.py --help`). If you need to set these settings on a per-check basis, you have to use a command-file. 
+
+### Command File
+
+You can also use YAML to configure checks. Try `python periscope.py -f example.yaml` or `cat example.yaml | python periscope.py -f -`.
+
+The used file-structure is optimized for layered YAMLs, so tools like Helm or Kustomize can be used easily to template this config. Understanding the parsing-method is easy: All paths are searched till a `type` key is found. All keys on the same level are considered config-keys. These keys will be used as named-argument for type-named checks (see `checks.py` for possibilities). All `type` keys will be taken into account, unless they are nested beneath a layer where a type-key was already present. These branches will be ignored. 
+
+```yaml
+a:
+  a1:
+    valid_check:
+      type: tcp
+      host: 8.8.8.8
+      port: 53
+      tcp_timeout: 1.0
+b:
+  another_valid_check:
+    type: tcp
+    host: 8.8.8.8
+    port: 53
+    ignored_check:
+      type: tcp
+      host: 8.8.8.8
+      port: 53
+```
+
+Commandline arguments will be taken into account. This is can be used to define global config parameters like tcp-timeout.
+
+### Remote use
+
+Using stdin with `-f -` as input gives you the possibility to pipe a local commandfile to a remote installation.
+
+To execute checks against k8s just use `kubectl run`.
+
+```bash
+$ cat example.yaml | kubectl run --image=docker.io/mriedmann/periscope:latest --rm --restart=Never -i checks -- -f -
+```
+
+If you want to use a remote host with docker installed, just use `docker run`.
+
+```bash
+$ cat example.yaml | ssh $HOST 'docker run --rm -i docker.io/mriedmann/periscope:latest -f - '
+```
+
+## Checks
+
+All currently available checks can be find in `checks.py`. If you miss any, feel free to open a feature request or PR.
+
+### Ping
+
+Simple ICMP echo ping check using [icmplib](https://github.com/ValentinBELYN/icmplib). On some systems this check needs minor modifications to be able to run without root previledges (see https://github.com/ValentinBELYN/icmplib#how-to-use-the-library-without-root-privileges).
+
+### HTTP
+
+Basic HTTP/S check using `urllib3`. If you want to check self-signed certificates you have to configure a trusted CA-Bundle. See the `--ca-certs` argument in `--help`.
+
+### TCP
+
+Very simple tcp-handshake check.
+
+### DNS
+
+Tries to resolve a given hostname (using the os defaults) and checks against provided IPs or subnets. 

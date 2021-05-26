@@ -1,8 +1,13 @@
 import argparse
 from checks import checks
+import certifi
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Simple system-context testing tool')
+
+    parser.add_argument("-v", "--verbose",
+        action=argparse.BooleanOptionalAction,
+        help="enabled detailed output (might be hard to parse)")
 
     parser.add_argument("-f","--file",
         nargs='?', 
@@ -28,15 +33,15 @@ def parse_args(args=None):
 
     parser.add_argument("--ca-certs", 
         nargs='?', 
-        default='/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt', 
+        default=certifi.where(), 
         help="sets path to ca-bundle, set to nothing to disable certificate check")
 
     for check in checks:
         parser.add_argument('--%s' % checks[check]['f'].__name__, nargs='*', help=checks[check]['help'])
     
-    return parser.parse_args(args=args)
+    return vars(parser.parse_args(args=args))
 
-def rewrite_dns(x):
+def parse_dns(x):
     if '=' in x:
         (hostname, target) = x.split('=')
         if ',' in target:
@@ -46,29 +51,27 @@ def rewrite_dns(x):
     else:
         hostname = x
         targets = []
-    return { 'name':hostname, 'ips': targets }
+    return { 'type': 'dns', 'name':hostname, 'ips': targets }
 
-def rewrite_tcp(x):
+def parse_tcp(x):
     (host, port) = x.split(':')
-    return { 'host':host, 'port': int(port) }
+    return { 'type': 'tcp', 'host':host, 'port': int(port) }
 
-def rewrite_http(x):
-    return { 'url': x }
+def parse_http(x):
+    return { 'type': 'http', 'url': x }
 
-def rewrite_ping(x):
-    return { 'host': x }
+def parse_ping(x):
+    return { 'type': 'ping', 'host': x }
 
-def gen_commands_from_args(args):
+def get_commands_and_config_from_args(args:dict):
+    l_checks = {}
     for check in checks:
-        f = checks[check]['f']
-        arg = f.__name__
-        for param in (getattr(args, arg, []) or []):  
-            l_args = vars(args)
-            if f'rewrite_{arg}' in globals():
-                l_args.update(globals()[f'rewrite_{arg}'](param))
-            call_args = {}
-            for check_arg in checks[check]['args']:
-                if check_arg not in l_args:
-                    raise Exception(f"{check_arg} not in {l_args}")
-                call_args[check_arg] = l_args[check_arg]
-            yield (f, call_args)
+        l_check = args.pop(check)
+        if l_check:
+            l_checks[check] = l_check
+   
+    commands = []
+    for check in l_checks:
+        for param in l_checks[check]:  
+            commands.append(globals()[f'parse_{check}'](param))
+    return (commands, args)
