@@ -7,7 +7,7 @@ from parameterized import parameterized
 
 class CheckTests(unittest.TestCase):
     @parameterized.expand([
-        ("8.8.8.8", Ok),
+        ("127.0.0.1", Ok),
         ("127.255.255.255", Err)
     ])
     def test_ping(self, target, return_type: Type):
