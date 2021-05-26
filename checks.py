@@ -7,15 +7,22 @@ import urllib3
 
 checks = {}
 
+
 def check(help):
     def wrap(f):
         sig = signature(f)
-        checks[f.__name__] = {'f':f, 'args': list(sig.parameters.keys()), 'help': help}
+        checks[f.__name__] = {
+            'f': f,
+            'args': list(sig.parameters.keys()),
+            'help': help
+        }
+
         @wraps(f)
         def wrapped_f(*args, **kwargs):
             return f(*args, **kwargs)
         return wrapped_f
     return wrap
+
 
 class CheckResult:
     msg: str = ""
@@ -23,14 +30,18 @@ class CheckResult:
     def __init__(self, msg) -> None:
         self.msg = msg
 
+
 class Ok(CheckResult):
     pass
+
 
 class Warn(Ok):
     pass
 
+
 class Err(CheckResult):
     pass
+
 
 @check("ICMP ping check")
 def ping(host, ping_count) -> CheckResult:
@@ -40,6 +51,7 @@ def ping(host, ping_count) -> CheckResult:
             return Warn(f"ICMP '{host}' ({h.address}) unreliable! packet loss {h.packet_loss*100}%")
         return Ok(f"ICMP '{host}' reachable ({h.avg_rtt}ms)")
     return Err(f"ICMP '{host}' unreachable")
+
 
 @check("HTTP request checking on response status (not >=400)")
 def http(url, http_method, ca_certs) -> CheckResult:
@@ -68,18 +80,20 @@ def http(url, http_method, ca_certs) -> CheckResult:
     finally:
         h.clear()
 
+
 @check("Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)")
 def tcp(host, port, tcp_timeout) -> CheckResult:
     s = socket.socket()
     s.settimeout(tcp_timeout)
 
     try:
-        s.connect((host, port)) 
+        s.connect((host, port))
         return Ok(f"TCP connection successfully established to port {port} on {host}")
-    except Exception as e: 
+    except Exception as e:
         return Err(f"TCP connection failed on port {port} for {host} ({e})")
     finally:
         s.close()
+
 
 @check("DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36) NOTE: it is possible to use subnets as target using CIDR notation")
 def dns(name, ips) -> CheckResult:

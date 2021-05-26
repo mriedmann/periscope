@@ -1,6 +1,5 @@
 import yaml
 import sys
-from checks import *
 
 def get_config_from_yamlfile(filepath):
     if filepath == '-':
@@ -11,6 +10,7 @@ def get_config_from_yamlfile(filepath):
 
 def get_commands_from_config(c):
     commands = []
+
     def scan(x):
         if 'type' in x.keys():
             commands.append(x)

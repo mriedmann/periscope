@@ -4,7 +4,7 @@ from cli import get_commands_and_config_from_args, parse_args
 from termcolor import colored
 import concurrent.futures
 from cmdfile import get_config_from_yamlfile, get_commands_from_config
-from checks import *
+from checks import Ok, Warn, Err, CheckResult, checks
 import pprint
 
 commands = []
@@ -13,16 +13,16 @@ results = []
 def print_results(results: list[CheckResult]):
     for result in results:
         if isinstance(result, Warn):
-            print(colored('[WARN]  ', 'yellow'), result.msg) 
+            print(colored('[WARN]  ', 'yellow'), result.msg)
         elif isinstance(result, Ok):
             print(colored('[OK]    ', 'green'), result.msg)
         elif isinstance(result, Err):
-            print(colored('[ERROR] ', 'red'), result.msg) 
+            print(colored('[ERROR] ', 'red'), result.msg)
 
 def print_calls(calls):
     for call in calls:
         f_name = call[0].__name__
-        print(f"{f_name:<8}" , ': ', call[1])
+        print(f"{f_name:<8}", ': ', call[1])
 
 def run_checks(commands):
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -52,12 +52,12 @@ if __name__ == '__main__':
         print("ARGS")
         pp.pprint(args)
         print()
-    
+
     (commands, config) = get_commands_and_config_from_args(args)
     if 'file' in args and args['file']:
         c = get_config_from_yamlfile(args['file'])
         commands.extend(get_commands_from_config(c))
-    
+
     calls = list(gen_calls(commands, config))
     if 'verbose' in args and args['verbose']:
         print("CALLS")
