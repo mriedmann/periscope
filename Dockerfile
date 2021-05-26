@@ -4,6 +4,6 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY periscope.py ./
+COPY *.py ./
 
 ENTRYPOINT [ "python", "/usr/src/app/periscope.py" ]

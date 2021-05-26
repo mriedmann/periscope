@@ -2,6 +2,7 @@ import icmplib
 import socket
 from inspect import signature
 from netaddr import IPNetwork, IPAddress
+from functools import wraps
 import urllib3
 
 urllib3.disable_warnings() #suppress cert warning
@@ -12,7 +13,7 @@ def check(help):
     def wrap(f):
         sig = signature(f)
         checks[f.__name__] = {'f':f, 'args': list(sig.parameters.keys())[1:], 'help': help}
-        
+        @wraps(f)
         def wrapped_f(*args, **kwargs):
             return f(*args, **kwargs)
         return wrapped_f

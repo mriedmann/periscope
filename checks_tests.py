@@ -3,7 +3,7 @@ import unittest
 from checks import Ok, Err, ping, dns, http, tcp
 from parameterized import parameterized
 
-class PeriscopeTests(unittest.TestCase):
+class CheckTests(unittest.TestCase):
     @parameterized.expand([
         ("8.8.8.8", Ok),
         ("127.255.255.255", Err)
