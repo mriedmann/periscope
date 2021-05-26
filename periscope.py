@@ -1,6 +1,6 @@
 #!/usr/bin/env /usr/bin/python3
 
-from cli import parse_args, extend_args_from_dict
+from cli import parse_args, gen_commands_from_args
 from termcolor import colored
 import yaml
 import concurrent.futures
@@ -24,27 +24,16 @@ def print_results(results: list[CheckResult]):
 
 def run_checks(commands):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(cmd[0], **{'x': cmd[1], **cmd[2]}) for cmd in commands]
+        futures = [executor.submit(cmd[0], **cmd[1]) for cmd in commands]
         for future in futures:
             yield future.result()
-
-def gen_commands(args):
-    for check in checks:
-        arg = checks[check]['f'].__name__
-        for param in (getattr(args, arg, []) or []):
-            call_args = {}
-            for check_arg in checks[check]['args']:
-                call_args[check_arg] = getattr(args, check_arg)
-            yield (checks[check]['f'], param, call_args)
 
 if __name__ == '__main__':
     args = parse_args()
     if args.file:
-        with open(args.file, 'r') as yaml_file:
-            y = yaml.load(yaml_file, Loader=yaml.FullLoader)
-            extend_args_from_dict(y, args)
+        raise NotImplementedError("not implemented in this version")
     
-    commands = gen_commands(args)      
+    commands = gen_commands_from_args(args)      
     results = run_checks(commands)
     print_results(results)
     if any(isinstance(x, Err) for x in results):

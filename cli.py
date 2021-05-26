@@ -36,10 +36,39 @@ def parse_args(args=None):
     
     return parser.parse_args(args=args)
 
-def extend_args_from_dict(y, args):
-    for opt in y['options']:
-        setattr(args,opt,y['options'][opt])
-    for check in y['checks']:
-        arg = next(iter(check))
-        param = check[arg]
-        setattr(args,arg,param)
+def rewrite_dns(x):
+    if '=' in x:
+        (hostname, target) = x.split('=')
+        if ',' in target:
+            targets = target.split(',')
+        else:
+            targets = [target]
+    else:
+        hostname = x
+        targets = []
+    return { 'name':hostname, 'ips': targets }
+
+def rewrite_tcp(x):
+    (host, port) = x.split(':')
+    return { 'host':host, 'port': int(port) }
+
+def rewrite_http(x):
+    return { 'url': x }
+
+def rewrite_ping(x):
+    return { 'host': x }
+
+def gen_commands_from_args(args):
+    for check in checks:
+        f = checks[check]['f']
+        arg = f.__name__
+        for param in (getattr(args, arg, []) or []):  
+            l_args = vars(args)
+            if f'rewrite_{arg}' in globals():
+                l_args.update(globals()[f'rewrite_{arg}'](param))
+            call_args = {}
+            for check_arg in checks[check]['args']:
+                if check_arg not in l_args:
+                    raise Exception(f"{check_arg} not in {l_args}")
+                call_args[check_arg] = l_args[check_arg]
+            yield (f, call_args)
