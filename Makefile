@@ -10,7 +10,7 @@ init:
 	python -m pip install -U --user -r requirements.txt
 
 test: $(tests)
-	pytest --cov=periscope ./tests
+	pytest --cov-report xml:cov.xml --cov=periscope ./tests
 
 build_image:
 	docker build -t periscope .

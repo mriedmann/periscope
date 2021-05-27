@@ -1,6 +1,5 @@
 import argparse
 from periscope.checks import checks
-import certifi
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Simple system-context testing tool')
