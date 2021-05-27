@@ -1,5 +1,7 @@
 # Periscope
 
+[![Coverage Status](https://coveralls.io/repos/github/mriedmann/periscope/badge.svg?branch=main)](https://coveralls.io/github/mriedmann/periscope?branch=main) [![Python application](https://github.com/mriedmann/periscope/actions/workflows/python-app.yaml/badge.svg)](https://github.com/mriedmann/periscope/actions/workflows/python-app.yaml)
+
 This simple tool can be used to verify the state of a system's context. It is meant to be used as test or init container e.g. to make sure that all needed connections are available. 
 
 ## The name
