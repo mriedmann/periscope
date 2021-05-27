@@ -3,6 +3,7 @@ icecream==2.1.0
 icmplib==2.1.1
 netaddr==0.8.0
 parameterized==0.7.4
+prometheus_client==0.10.1
 PyYAML==5.4.1
 termcolor==1.1.0
 urllib3==1.25.10

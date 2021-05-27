@@ -5,16 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "periscope",
+            "args": [
+                "-f",
+                "example.yaml",
+                "-i",
+                "2",
+                "-v"
+            ]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--http", "https://httpstat.us/200",
-                "--tcp", "8.8.8.8:53", 
-                "--ping", "8.8.8.8", 
-                "--dns", "dns.google=8.8.8.8,8.8.4.4"
+                "-f",
+                "example.yaml",
+                "-i",
+                "2",
+                "-v"
             ]
         }
     ]
