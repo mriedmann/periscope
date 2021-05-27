@@ -1,7 +1,7 @@
 from typing import Type
 import unittest
 import certifi
-from periscope.checks import Ok, Err, ping, dns, http, tcp
+from periscope.checks import Ok, Err, Warn, ping, dns, http, tcp
 from parameterized import parameterized
 
 
@@ -38,7 +38,7 @@ class CheckTests(unittest.TestCase):
     @parameterized.expand([
         ("https://httpstat.us/200", Ok),
         ("https://httpstat.us/500", Err),
-        ("https://self-signed.badssl.com/", Err),
+        ("https://self-signed.badssl.com/", Warn),
     ])
     def test_http_certcheck(self, target, return_type: Type):
         result = http(target, ca_certs=certifi.where(), http_method='HEAD')

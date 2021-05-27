@@ -4,6 +4,7 @@ from inspect import signature
 from netaddr import IPNetwork, IPAddress
 from functools import wraps
 import urllib3
+import ssl
 
 checks = {}
 
@@ -60,7 +61,7 @@ def http(url, http_method, ca_certs) -> CheckResult:
         h = urllib3.PoolManager(ca_certs=ca_certs)
     else:
         urllib3.disable_warnings()
-        h = urllib3.PoolManager()
+        h = urllib3.PoolManager(cert_reqs=ssl.CERT_NONE)
     try:
         response = h.request(method, url, retries=False)
         if 200 <= response.status <= 299:
@@ -68,15 +69,17 @@ def http(url, http_method, ca_certs) -> CheckResult:
         elif 300 <= response.status <= 399:
             return Warn(f"HTTP {method} to '{url}' returned {response.status}")
         return Err(f"HTTP {method} to '{url}' returned {response.status}")
+    except urllib3.exceptions.SSLError as e:
+        if not ca_certs:
+            return Err(f"HTTP {method} to '{url}' failed ({e})")
+        result = http(url, http_method, None)
+        msg = f"{result.msg}. SSL Certificate verification failed on '{url}' ({e})"
+        if isinstance(result, Ok):
+            return Warn(msg)
+        else:
+            return Err(msg)
     except Exception as e:
-        if hasattr(e, 'reason') and type(e.reason) == urllib3.exceptions.SSLError:
-            result = http(url, http_method, None)
-            msg = f"{result.msg}. SSL Certificate verification failed on '{url}' ({e.reason})"
-            if isinstance(result, Ok):
-                return Warn(msg)
-            else:
-                return Err(msg)
-        return Err(f"HTTP {method} to '{url}' failed ({e})")
+        return Err(f"HTTP {method} to '{url}' failed ({e.__class__}: {e})")
     finally:
         h.clear()
 
