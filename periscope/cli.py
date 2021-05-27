@@ -43,6 +43,11 @@ def parse_args(args=None):
                         action=argparse.BooleanOptionalAction,
                         help="don't fail on tls certificate validation errors")
 
+    parser.add_argument("-i", "--interval",
+                        nargs='?',
+                        default=5,
+                        help="don't exit but repeat checks in given interval")
+
     for check in checks:
         parser.add_argument('--%s' % checks[check]['f'].__name__, nargs='*', help=checks[check]['help'])
 

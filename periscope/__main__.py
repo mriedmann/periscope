@@ -1,6 +1,7 @@
 #!/usr/bin/env /usr/bin/python3
 
 import concurrent.futures
+import time
 from icecream import ic
 from termcolor import colored
 from periscope.cli import get_commands_and_config_from_args, parse_args
@@ -48,8 +49,15 @@ def run(args):
 
     calls = list(gen_calls(commands, config))
     ic(calls)
-    results = ic(list(run_checks(calls)))
-    print_results(results)
+
+    if 'interval' in args and args['interval']:
+        while(True):
+            results = ic(list(run_checks(calls)))
+            print_results(results)
+            time.sleep(float(args['interval']))
+    else:
+        results = ic(list(run_checks(calls)))
+        print_results(results)
 
     if any([isinstance(x, Err) for x in results]):
         return 1
