@@ -1,3 +1,4 @@
+import certifi
 import icmplib
 import socket
 from inspect import signature
@@ -36,7 +37,7 @@ class Ok(CheckResult):
     pass
 
 
-class Warn(Ok):
+class Warn(CheckResult):
     pass
 
 
@@ -55,33 +56,39 @@ def ping(host, ping_count) -> CheckResult:
 
 
 @check("HTTP request checking on response status (not >=400)")
-def http(url, http_method, ca_certs) -> CheckResult:
-    method = http_method
-    if ca_certs:
-        h = urllib3.PoolManager(ca_certs=ca_certs)
-    else:
+def http(url,
+         http_status=list(range(200, 208)) + list(range(300, 308)),
+         http_method='HEAD',
+         ca_certs=certifi.where(),
+         insecure=False
+         ) -> CheckResult:
+
+    if insecure:
         urllib3.disable_warnings()
-        h = urllib3.PoolManager(cert_reqs=ssl.CERT_NONE)
+
+    def request(cert_reqs):
+        h = urllib3.PoolManager(ca_certs=ca_certs, cert_reqs=cert_reqs)
+        try:
+            response = h.request(http_method, url, retries=False)
+            if response.status in http_status:
+                return Ok(f"HTTP {http_method} to '{url}' returned {response.status}")
+            return Err(f"HTTP {http_method} to '{url}' returned {response.status}")
+        finally:
+            h.clear()
+
     try:
-        response = h.request(method, url, retries=False)
-        if 200 <= response.status <= 299:
-            return Ok(f"HTTP {method} to '{url}' returned {response.status}")
-        elif 300 <= response.status <= 399:
-            return Warn(f"HTTP {method} to '{url}' returned {response.status}")
-        return Err(f"HTTP {method} to '{url}' returned {response.status}")
+        return request(cert_reqs=ssl.CERT_REQUIRED)
     except urllib3.exceptions.SSLError as e:
-        if not ca_certs:
-            return Err(f"HTTP {method} to '{url}' failed ({e})")
-        result = http(url, http_method, None)
+        if not insecure:
+            return Err(f"HTTP {http_method} to '{url}' failed ({e})")
+        result = request(cert_reqs=ssl.CERT_NONE)
         msg = f"{result.msg}. SSL Certificate verification failed on '{url}' ({e})"
         if isinstance(result, Ok):
             return Warn(msg)
         else:
             return Err(msg)
     except Exception as e:
-        return Err(f"HTTP {method} to '{url}' failed ({e.__class__}: {e})")
-    finally:
-        h.clear()
+        return Err(f"HTTP {http_method} to '{url}' failed ({e.__class__}: {e})")
 
 
 @check("Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)")

@@ -20,6 +20,11 @@ def parse_args(args=None):
                         default=2.0,
                         help="sets the tcp timeout in seconds (e.g 10.5)")
 
+    parser.add_argument("--http-status",
+                        nargs='*',
+                        type=int,
+                        help="sets acceptable HTTP status-codes (e.g 200 301 405)")
+
     parser.add_argument("--http-method",
                         nargs='?',
                         type=str,
@@ -33,8 +38,11 @@ def parse_args(args=None):
 
     parser.add_argument("--ca-certs",
                         nargs='?',
-                        default=certifi.where(),
-                        help="sets path to ca-bundle, set to nothing to disable certificate check")
+                        help="sets path to custom ca-bundle. If not set bundled Root-CAs are used.")
+
+    parser.add_argument("-k", "--insecure",
+                        action=argparse.BooleanOptionalAction,
+                        help="don't fail on tls certificate validation errors")
 
     for check in checks:
         parser.add_argument('--%s' % checks[check]['f'].__name__, nargs='*', help=checks[check]['help'])

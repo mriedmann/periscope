@@ -4,6 +4,13 @@ from periscope.cli import parse_args, get_commands_and_config_from_args
 
 
 class CliTests(unittest.TestCase):
+    def assertSubset(self, collection, subset):
+        self.assertTrue(subset.items() <= collection.items(), f"{subset} not in {collection}")
+
+    def assertSubsetList(self, collection, subset):
+        for i in range(0, len(subset)):
+            self.assertSubset(collection[i], subset[i])
+
     @parameterized.expand([
         (['--http', 'https://httpstat.us/200'],
          [{'type': 'http', 'url': 'https://httpstat.us/200'}]),
@@ -28,9 +35,21 @@ class CliTests(unittest.TestCase):
     def test_cli(self, params, expected_commands):
         args = parse_args(params)
         (commands, _) = list(get_commands_and_config_from_args(args))
-        for i in range(0, len(expected_commands)):
-            self.assertTrue(
-                expected_commands[i].items() <= commands[i].items())
+        self.assertSubsetList(commands, expected_commands)
+
+    @parameterized.expand([
+        (['--http', 'https://self-signed.badssl.com/', '--insecure'],
+         [{'type': 'http', 'url': 'https://self-signed.badssl.com/'}], {'insecure': True}),
+        (['--http', 'https://self-signed.badssl.com/', '--http-status', '200'],
+         [{'type': 'http', 'url': 'https://self-signed.badssl.com/'}], {'http_status': [200]}),
+        (['--http', 'https://self-signed.badssl.com/', '--http-status', '200', '301'],
+         [{'type': 'http', 'url': 'https://self-signed.badssl.com/'}], {'http_status': [200, 301]}),
+    ])
+    def test_cli_and_config(self, params, expected_commands, expected_config):
+        args = parse_args(params)
+        (commands, config) = list(get_commands_and_config_from_args(args))
+        self.assertSubsetList(commands, expected_commands)
+        self.assertSubset(config, expected_config)
 
 
 if __name__ == '__main__':
