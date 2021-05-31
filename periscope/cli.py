@@ -45,7 +45,8 @@ def parse_args(args=None):
 
     parser.add_argument("-i", "--interval",
                         nargs='?',
-                        default=5,
+                        const=5,
+                        type=int,
                         help="don't exit but repeat checks in given interval. Also activates prometheus exporter")
     
     parser.add_argument("-p", "--port",
