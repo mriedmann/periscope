@@ -1,6 +1,8 @@
 import unittest
+
 from parameterized import parameterized
-from periscope.cli import parse_args, get_commands_and_config_from_args
+
+from pipecheck.cli import get_commands_and_config_from_args, parse_args
 
 
 class CliTests(unittest.TestCase):
@@ -11,44 +13,52 @@ class CliTests(unittest.TestCase):
         for i in range(0, len(subset)):
             self.assertSubset(collection[i], subset[i])
 
-    @parameterized.expand([
-        (['--http', 'https://httpstat.us/200'],
-         [{'type': 'http', 'url': 'https://httpstat.us/200'}]),
-        (['--tcp', '8.8.8.8:53'],
-         [{'type': 'tcp', 'host': '8.8.8.8', 'port': 53}]),
-        (['--dns', 'one.one.one.one=1.1.1.1,1.0.0.1'],
-         [{'type': 'dns', 'name': 'one.one.one.one', 'ips': ['1.1.1.1', '1.0.0.1']}]),
-        (['--dns', 'one.one.one.one'],
-         [{'type': 'dns', 'name': 'one.one.one.one', 'ips': []}]),
-        (['--dns', 'one.one.one.one=1.1.1.1'],
-         [{'type': 'dns', 'name': 'one.one.one.one', 'ips': ['1.1.1.1']}]),
-        (['--ping', '8.8.8.8'], [{'type': 'ping', 'host': '8.8.8.8'}]),
-        (['--ping', '8.8.8.8', '1.1.1.1'],
-         [{'type': 'ping', 'host': '8.8.8.8'}, {'type': 'ping', 'host': '1.1.1.1'}]),
-        ([
-            '--http', 'https://httpstat.us/200',
-            '--tcp', '8.8.8.8:53',
-            '--dns', 'one.one.one.one=1.1.1.1,1.0.0.1'
-        ], [
-            ({"type": "http", 'url': 'https://httpstat.us/200'}),
-            ({"type": "tcp", 'host': '8.8.8.8', 'port': 53}),
-            ({"type": "dns", 'name': 'one.one.one.one',
-              'ips': ['1.1.1.1', '1.0.0.1']})
-        ]),
-    ])
+    @parameterized.expand(
+        [
+            (["--http", "https://httpstat.us/200"], [{"type": "http", "url": "https://httpstat.us/200"}]),
+            (["--tcp", "8.8.8.8:53"], [{"type": "tcp", "host": "8.8.8.8", "port": 53}]),
+            (
+                ["--dns", "one.one.one.one=1.1.1.1,1.0.0.1"],
+                [{"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1", "1.0.0.1"]}],
+            ),
+            (["--dns", "one.one.one.one"], [{"type": "dns", "name": "one.one.one.one", "ips": []}]),
+            (["--dns", "one.one.one.one=1.1.1.1"], [{"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1"]}]),
+            (["--ping", "8.8.8.8"], [{"type": "ping", "host": "8.8.8.8"}]),
+            (["--ping", "8.8.8.8", "1.1.1.1"], [{"type": "ping", "host": "8.8.8.8"}, {"type": "ping", "host": "1.1.1.1"}]),
+            (
+                ["--http", "https://httpstat.us/200", "--tcp", "8.8.8.8:53", "--dns", "one.one.one.one=1.1.1.1,1.0.0.1"],
+                [
+                    ({"type": "http", "url": "https://httpstat.us/200"}),
+                    ({"type": "tcp", "host": "8.8.8.8", "port": 53}),
+                    ({"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1", "1.0.0.1"]}),
+                ],
+            ),
+        ]
+    )
     def test_cli(self, params, expected_commands):
         args = parse_args(params)
         (commands, _) = list(get_commands_and_config_from_args(args))
         self.assertSubsetList(commands, expected_commands)
 
-    @parameterized.expand([
-        (['--http', 'https://self-signed.badssl.com/', '--insecure'],
-         [{'type': 'http', 'url': 'https://self-signed.badssl.com/'}], {'insecure': True}),
-        (['--http', 'https://self-signed.badssl.com/', '--http-status', '200'],
-         [{'type': 'http', 'url': 'https://self-signed.badssl.com/'}], {'http_status': [200]}),
-        (['--http', 'https://self-signed.badssl.com/', '--http-status', '200', '301'],
-         [{'type': 'http', 'url': 'https://self-signed.badssl.com/'}], {'http_status': [200, 301]}),
-    ])
+    @parameterized.expand(
+        [
+            (
+                ["--http", "https://self-signed.badssl.com/", "--insecure"],
+                [{"type": "http", "url": "https://self-signed.badssl.com/"}],
+                {"insecure": True},
+            ),
+            (
+                ["--http", "https://self-signed.badssl.com/", "--http-status", "200"],
+                [{"type": "http", "url": "https://self-signed.badssl.com/"}],
+                {"http_status": [200]},
+            ),
+            (
+                ["--http", "https://self-signed.badssl.com/", "--http-status", "200", "301"],
+                [{"type": "http", "url": "https://self-signed.badssl.com/"}],
+                {"http_status": [200, 301]},
+            ),
+        ]
+    )
     def test_cli_and_config(self, params, expected_commands, expected_config):
         args = parse_args(params)
         (commands, config) = list(get_commands_and_config_from_args(args))
@@ -56,5 +66,5 @@ class CliTests(unittest.TestCase):
         self.assertSubset(config, expected_config)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

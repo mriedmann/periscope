@@ -1,11 +1,12 @@
+import socket
+import ssl
+from functools import wraps
+from inspect import signature
+
 import certifi
 import icmplib
-import socket
-from inspect import signature
-from netaddr import IPNetwork, IPAddress
-from functools import wraps
 import urllib3
-import ssl
+from netaddr import IPAddress, IPNetwork
 
 checks = {}
 
@@ -13,16 +14,14 @@ checks = {}
 def check(help):
     def wrap(f):
         sig = signature(f)
-        checks[f.__name__] = {
-            'f': f,
-            'args': list(sig.parameters.keys()),
-            'help': help
-        }
+        checks[f.__name__] = {"f": f, "args": list(sig.parameters.keys()), "help": help}
 
         @wraps(f)
         def wrapped_f(*args, **kwargs):
             return f(*args, **kwargs)
+
         return wrapped_f
+
     return wrap
 
 
@@ -56,12 +55,13 @@ def ping(host, ping_count) -> CheckResult:
 
 
 @check("HTTP request checking on response status (not >=400)")
-def http(url,
-         http_status=list(range(200, 208)) + list(range(300, 308)),
-         http_method='HEAD',
-         ca_certs=certifi.where(),
-         insecure=False
-         ) -> CheckResult:
+def http(
+    url,
+    http_status=list(range(200, 208)) + list(range(300, 308)),
+    http_method="HEAD",
+    ca_certs=certifi.where(),
+    insecure=False,
+) -> CheckResult:
 
     if insecure:
         urllib3.disable_warnings()
@@ -105,8 +105,10 @@ def tcp(host, port, tcp_timeout) -> CheckResult:
         s.close()
 
 
-@check("DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36) "
-       "NOTE: it is possible to use subnets as target using CIDR notation")
+@check(
+    "DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36) "
+    "NOTE: it is possible to use subnets as target using CIDR notation"
+)
 def dns(name, ips) -> CheckResult:
     try:
         ip = socket.gethostbyname(name)
@@ -114,7 +116,7 @@ def dns(name, ips) -> CheckResult:
         return Err(f"DNS resolution for '{name}' failed ({e})")
 
     target = " ".join(ips)
-    if '/' in target:
+    if "/" in target:
         if any(IPAddress(ip) in IPNetwork(t) for t in ips):
             return Ok(f"DNS resolution for '{name}' returned ip '{ip}' in expected subnet '{target}'")
         return Err(f"DNS resolution for '{name}' did not return ip '{ip}' in expected subnet '{target}'")

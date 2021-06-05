@@ -1,9 +1,9 @@
 FROM docker.io/library/python:3.9-alpine
 
+ARG VERSION=0.1.0
+
 WORKDIR /usr/src/app
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir "pipecheck==${VERSION}"
 
-COPY periscope/ ./periscope/
-
-ENTRYPOINT [ "python", "-m", "periscope" ]
+ENTRYPOINT [ "python", "-m", "pipecheck" ]
