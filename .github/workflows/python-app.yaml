@@ -25,7 +25,12 @@ jobs:
           make init
       - name: Run tests
         run: |
+          source $HOME/.poetry/env
           make test
+      - name: Run image test
+        run: |
+          source $HOME/.poetry/env
+          make test_image
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
         with:
