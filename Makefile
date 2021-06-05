@@ -30,6 +30,7 @@ test: build
 	poetry run pytest
 
 publish:
+	@poetry config pypi-token.pypi "$(PYPI_TOKEN)"
 	poetry publish
 
 build_image:
@@ -46,8 +47,8 @@ test_image: build_image
 		pytest -v -x ./tests -k "not ping" \
 	'
 
-publish_image: test_image
-	docker tag pipecheck:$(version) docker.io/mriedmann/pipecheck:$(version)
-	docker tag pipecheck:$(version) docker.io/mriedmann/pipecheck:latest
-	docker push docker.io/mriedmann/pipecheck:$(version)
-	docker push docker.io/mriedmann/pipecheck:latest
+publish_image:
+	docker tag pipecheck:$(short_version) docker.pkg.github.com/mriedmann/pipecheck:$(short_version)
+	docker tag pipecheck:$(short_version) docker.pkg.github.com/mriedmann/pipecheck:latest
+	docker push docker.pkg.github.com/mriedmann/pipecheck:$(short_version)
+	docker push docker.pkg.github.com/mriedmann/pipecheck:latest

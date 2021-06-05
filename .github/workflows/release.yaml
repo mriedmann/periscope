@@ -1,0 +1,28 @@
+name: Auto Release
+
+on:
+  repository_dispatch:
+    types: release
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login to github registry
+      run: echo "${{ secrets.PAT }}" | docker login ghcr.io --username mriedmann --password-stdin
+    - name: Execute Release
+      id: release
+      env:
+        PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        make update
+        make test
+        make test_image
+        make publish
+        make publish_image
