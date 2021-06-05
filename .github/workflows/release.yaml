@@ -13,16 +13,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9  
     - name: Login to github registry
       run: echo "${{ secrets.PAT }}" | docker login ghcr.io --username mriedmann --password-stdin
-    - name: Execute Release
-      id: release
-      env:
-        PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    - name: Init & Update
       run: |
+        make init
+        source $HOME/.poetry/env
         make update
+    - name: Run tests
+      run: |
+        source $HOME/.poetry/env
         make test
         make test_image
+    - name: Publish
+      env:
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        source $HOME/.poetry/env
         make publish
         make publish_image
