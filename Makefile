@@ -9,9 +9,9 @@ init:
 bump:
 	which gh || { echo "gh (github cli) not installed!"; exit 1; }
 	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$a.$$((b+1)).0")
-	git commit -a -m "bump version to $(shell poetry version)"
+	poetry version | xargs -i git commit -a -m "bump version to {}"
 	git push
-	gh release create v$(shell poetry version)
+	poetry version -s | xargs -i gh release create v{}
 
 update:
 	poetry update
@@ -53,7 +53,7 @@ test_image: build_image
 	'
 
 publish_image:
-	docker tag pipecheck:$(short_version) docker.pkg.github.com/mriedmann/pipecheck:$(short_version)
-	docker tag pipecheck:$(short_version) docker.pkg.github.com/mriedmann/pipecheck:latest
-	docker push docker.pkg.github.com/mriedmann/pipecheck:$(short_version)
-	docker push docker.pkg.github.com/mriedmann/pipecheck:latest
+	docker tag pipecheck:$(short_version) ghcr.io/mriedmann/pipecheck:$(short_version)
+	docker tag pipecheck:$(short_version) ghcr.io/mriedmann/pipecheck:latest
+	docker push ghcr.io/mriedmann/pipecheck:$(short_version)
+	docker push ghcr.io/mriedmann/pipecheck:latest
