@@ -5,11 +5,13 @@ short_version = $(shell poetry version -s | cut -d'+' -f1)
 
 init:
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+	
+bump:
 	python -m pip install --user -U poetry-dynamic-versioning
+	poetry-dynamic-versioning
 
 update:
 	poetry update
-	poetry-dynamic-versioning
 	poetry export --output requirements.txt
 	poetry export --dev --output requirements.dev.txt
 
@@ -23,7 +25,7 @@ format: install
 lint: format
 	poetry run flake8 pipecheck tests --show-source --statistics --count
 
-build: lint
+build:
 	poetry build
 
 test: build
