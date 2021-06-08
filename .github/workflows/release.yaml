@@ -29,10 +29,15 @@ jobs:
         source $HOME/.poetry/env
         make test
         make test_image
-    - name: Publish
+    - name: Publish to PyPi
+      continue-on-error: true
       env:
         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
       run: |
         source $HOME/.poetry/env
-        make publish
+        make publish_image
+    - name: Publish to GHCR
+      continue-on-error: true
+      run: |
+        source $HOME/.poetry/env
         make publish_image
