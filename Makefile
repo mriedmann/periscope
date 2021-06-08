@@ -18,14 +18,14 @@ update:
 install: init
 	poetry install
 
-format: install
+lint: install
+	poetry run flake8 pipecheck tests --show-source --statistics --count
+
+format: lint
 	poetry run isort pipecheck tests
 	poetry run black pipecheck tests
 
-lint: format
-	poetry run flake8 pipecheck tests --show-source --statistics --count
-
-build:
+build: install
 	poetry build
 
 test: build
