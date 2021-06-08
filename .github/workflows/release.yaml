@@ -35,7 +35,7 @@ jobs:
         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
       run: |
         source $HOME/.poetry/env
-        make publish_image
+        make publish
     - name: Publish to GHCR
       continue-on-error: true
       run: |
