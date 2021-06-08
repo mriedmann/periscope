@@ -7,8 +7,11 @@ init:
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 	
 bump:
-	python -m pip install --user -U poetry-dynamic-versioning
-	poetry-dynamic-versioning
+	which gh || { echo "gh (github cli) not installed!"; exit 1; }
+	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$a.$$((b+1)).0")
+	git commit -a -m "bump version to $(shell poetry version)"
+	git push
+	gh release create v$(shell poetry version)
 
 update:
 	poetry update

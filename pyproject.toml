@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipecheck"
-version = "0.1.3"
+version = "0.2.0"
 description = "This simple tool can be used to verify the state of a system's context."
 authors = ["Michael Riedmann <michael_riedmann@live.com>"]
 license = "MIT"
