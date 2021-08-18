@@ -7,7 +7,7 @@ from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
 from termcolor import colored
 
-from pipecheck.checks import get_checks
+from pipecheck.checks import get_probes
 from pipecheck.api import CheckResult, Err, Ok, Warn
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
 from pipecheck.cmdfile import get_commands_from_config, get_config_from_yamlfile
@@ -16,9 +16,9 @@ REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all c
 
 CHECK_STATE_LABLES = ["url", "host", "port", "name"]
 CHECK_STATES = {}
-checks = get_checks()
+checks = get_probes()
 for check in checks:
-    labels = [x for x in checks[check].args if x in CHECK_STATE_LABLES]
+    labels = [x for x in checks[check].get_args() if x in CHECK_STATE_LABLES]
     CHECK_STATES[check] = Enum(f"{check}_check_state", f"State of check {check}", labels, states=["Ok", "Warn", "Err"])
 
 commands = []
@@ -54,15 +54,15 @@ def gen_call(command, config):
     f_name = command.pop("type")
     if f_name not in checks:
         raise Exception(f"can't find check of type '{f_name}'")
-    f = checks[f_name].f
+    f = checks[f_name].get_result
     call_args = {}
     l_config = {**config, **command}
-    for check_arg in checks[f_name].args:
+    for check_arg in checks[f_name].get_args():
         if check_arg not in l_config:
             continue
         if l_config[check_arg]:
             call_args[check_arg] = l_config[check_arg]
-    return (f, call_args)
+    return (f, call_args, f_name)
 
 
 @REQUEST_TIME.time()
@@ -73,7 +73,7 @@ def run(calls):
         result = future.result()
         print_result(result)
         labels = {k: v for k, v in cmd[1].items() if k in CHECK_STATE_LABLES}
-        CHECK_STATES[cmd[0].__name__].labels(**labels).state(result.__class__.__name__)
+        CHECK_STATES[cmd[2]].labels(**labels).state(result.__class__.__name__)
         if isinstance(result, Err):
             return_code = 1
 

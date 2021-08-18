@@ -1,18 +1,3 @@
-from typing import Callable
-
-
-class Check:
-    f: Callable = lambda *args: args
-    args: list[str] = []
-    help: str = ""
-
-    def __init__(self, f, args=[], help=""):
-        self.f = f
-        self.args = args
-        self.help = help
-
-    def to_dict(self):
-        return {"f": self.f, "args": self.args, "help": self.help}
 
 class CheckResult:
     msg: str = ""
@@ -31,3 +16,21 @@ class Warn(CheckResult):
 
 class Err(CheckResult):
     pass
+
+
+class Unk(CheckResult):
+    pass
+
+
+class Probe:
+    def get_result(self, *args, **kwargs) -> CheckResult:
+        return Unk("No check implemented")
+    
+    def get_help(self):
+        return self.__doc__
+    
+    def get_args(self):
+        return []
+    
+    def get_name(self):
+        return self.__class__.__name__

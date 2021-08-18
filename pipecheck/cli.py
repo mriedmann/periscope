@@ -1,9 +1,9 @@
 import argparse
 
 from pipecheck import __version__
-from pipecheck.checks import get_checks
+from pipecheck.checks import get_probes
 
-checks = get_checks()
+checks = get_probes()
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description="Simple system-context testing tool")
@@ -44,7 +44,7 @@ def parse_args(args=None):
     parser.add_argument("-p", "--port", nargs="?", default=9000, help="promtheus exporter port")
 
     for check in checks:
-        parser.add_argument("--%s" % checks[check].f.__name__, nargs="*", help=checks[check].help)
+        parser.add_argument("--%s" % checks[check].get_name(), nargs="*", help=checks[check].get_help())
 
     return vars(parser.parse_args(args=args))
 

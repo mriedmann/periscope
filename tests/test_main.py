@@ -48,7 +48,7 @@ class MainTests(unittest.TestCase):
     )
     def test_gen_call(self, command, config, expected_call):
         call = gen_call(command, config)
-        self.assertEqual(call[0].__name__, expected_call[0].__name__)
+        self.assertEqual(call[2], expected_call[0].__name__)
         self.assertDictEqual(call[1], expected_call[1])
 
     def test_run_success(self):
