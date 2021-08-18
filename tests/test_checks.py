@@ -3,7 +3,8 @@ from typing import Type
 
 from parameterized import parameterized
 
-from pipecheck.checks import Err, Ok, Warn, dns, http, ping, tcp
+from pipecheck.api import Err, Ok, Warn
+from pipecheck.checks import dns, http, ping, tcp
 
 
 class CheckTests(unittest.TestCase):

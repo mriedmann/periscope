@@ -5,7 +5,8 @@ import unittest.mock
 from parameterized import parameterized
 
 from pipecheck.__main__ import gen_call, print_result, run
-from pipecheck.checks import Err, Ok, Warn, dns, http, ping, tcp
+from pipecheck.api import Err, Ok, Warn
+from pipecheck.checks import dns, http, ping, tcp
 
 CRED = "\33[31m"
 CGREEN = "\33[32m"
