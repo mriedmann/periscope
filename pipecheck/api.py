@@ -1,3 +1,6 @@
+from inspect import signature
+from typing import Any
+
 
 class CheckResult:
     msg: str = ""
@@ -23,14 +26,20 @@ class Unk(CheckResult):
 
 
 class Probe:
-    def get_result(self, *args, **kwargs) -> CheckResult:
-        return Unk("No check implemented")
-    
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
     def get_help(self):
         return self.__doc__
-    
+
+    def get_type(self):
+        return self.__class__.__name__.replace("Probe", "").lower()
+
     def get_args(self):
-        return []
+        return signature(self.__call__).parameters.keys()
     
-    def get_name(self):
-        return self.__class__.__name__
+    def get_labels(self):
+        return {}
+
+    def __call__(self) -> CheckResult:
+        return Unk("No check implemented")

@@ -44,7 +44,7 @@ def parse_args(args=None):
     parser.add_argument("-p", "--port", nargs="?", default=9000, help="promtheus exporter port")
 
     for check in checks:
-        parser.add_argument("--%s" % checks[check].get_name(), nargs="*", help=checks[check].get_help())
+        parser.add_argument("--%s" % checks[check].get_type(None), nargs="*", help=checks[check].get_help(None))
 
     return vars(parser.parse_args(args=args))
 

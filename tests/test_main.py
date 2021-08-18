@@ -7,6 +7,7 @@ from parameterized import parameterized
 from pipecheck.__main__ import gen_call, print_result, run
 from pipecheck.api import Err, Ok, Warn
 from pipecheck.checks import dns, http, ping, tcp
+from pipecheck.checks.check import make_adhoc_probe
 
 CRED = "\33[31m"
 CGREEN = "\33[32m"
@@ -48,15 +49,15 @@ class MainTests(unittest.TestCase):
     )
     def test_gen_call(self, command, config, expected_call):
         call = gen_call(command, config)
-        self.assertEqual(call[2], expected_call[0].__name__)
-        self.assertDictEqual(call[1], expected_call[1])
+        self.assertEqual(call[1], expected_call[0].__name__)
+        self.assertDictEqual(call[0].kwargs, expected_call[1])
 
     def test_run_success(self):
-        exit_code = run([(http, {"url": "https://httpstat.us/200"})])
+        exit_code = run([(make_adhoc_probe(http, ["url"])(url="https://httpstat.us/200"), "http")])
         self.assertEqual(exit_code, 0)
 
     def test_run_fail(self):
-        exit_code = run([(http, {"url": "https://httpstat.us/500"})])
+        exit_code = run([(make_adhoc_probe(http, ["url"])(url="https://httpstat.us/500"), "http")])
         self.assertEqual(exit_code, 1)
 
 

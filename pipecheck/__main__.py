@@ -18,7 +18,7 @@ CHECK_STATE_LABLES = ["url", "host", "port", "name"]
 CHECK_STATES = {}
 checks = get_probes()
 for check in checks:
-    labels = [x for x in checks[check].get_args() if x in CHECK_STATE_LABLES]
+    labels = [x for x in checks[check].get_args(None) if x in CHECK_STATE_LABLES]
     CHECK_STATES[check] = Enum(f"{check}_check_state", f"State of check {check}", labels, states=["Ok", "Warn", "Err"])
 
 commands = []
@@ -37,7 +37,7 @@ def print_result(result: CheckResult):
 def launch_checks(commands):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for cmd in commands:
-            yield (cmd, executor.submit(cmd[0], **cmd[1]))
+            yield (cmd, executor.submit(cmd[0]))
 
 
 def gen_calls(args):
@@ -54,15 +54,9 @@ def gen_call(command, config):
     f_name = command.pop("type")
     if f_name not in checks:
         raise Exception(f"can't find check of type '{f_name}'")
-    f = checks[f_name].get_result
-    call_args = {}
     l_config = {**config, **command}
-    for check_arg in checks[f_name].get_args():
-        if check_arg not in l_config:
-            continue
-        if l_config[check_arg]:
-            call_args[check_arg] = l_config[check_arg]
-    return (f, call_args, f_name)
+    f = checks[f_name](**l_config)
+    return (f, f_name)
 
 
 @REQUEST_TIME.time()
@@ -72,8 +66,8 @@ def run(calls):
     for (cmd, future) in launched_checks:
         result = future.result()
         print_result(result)
-        labels = {k: v for k, v in cmd[1].items() if k in CHECK_STATE_LABLES}
-        CHECK_STATES[cmd[2]].labels(**labels).state(result.__class__.__name__)
+        labels = {k: v for k, v in cmd[0].get_labels().items() if k in CHECK_STATE_LABLES}
+        CHECK_STATES[cmd[1]].labels(**labels).state(result.__class__.__name__)
         if isinstance(result, Err):
             return_code = 1
 

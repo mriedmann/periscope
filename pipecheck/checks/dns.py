@@ -3,7 +3,7 @@ import socket
 from netaddr import IPAddress, IPNetwork
 
 from pipecheck.checks.check import check
-from pipecheck.api import CheckResult, Ok, Err
+from pipecheck.api import Probe, CheckResult, Ok, Err
 
 
 @check(
