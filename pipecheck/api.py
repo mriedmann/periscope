@@ -1,5 +1,4 @@
 from inspect import signature
-from typing import Any
 
 
 class CheckResult:
@@ -29,15 +28,18 @@ class Probe:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
-    def get_help(self):
-        return self.__doc__
+    @classmethod
+    def get_help(cls):
+        return cls.__doc__
 
-    def get_type(self):
-        return self.__class__.__name__.replace("Probe", "").lower()
+    @classmethod
+    def get_type(cls):
+        return cls.__name__.replace("Probe", "").lower()
 
-    def get_args(self):
-        return signature(self.__call__).parameters.keys()
-    
+    @classmethod
+    def get_args(cls):
+        return signature(cls.__call__).parameters.keys()
+
     def get_labels(self):
         return {}
 

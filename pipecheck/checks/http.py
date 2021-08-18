@@ -7,7 +7,7 @@ from pipecheck.checks.check import check
 from pipecheck.api import CheckResult, Ok, Warn, Err
 
 
-@check("HTTP request checking on response status (not >=400)")
+@check
 def http(
     url,
     http_status=list(range(200, 208)) + list(range(300, 308)),
@@ -15,6 +15,7 @@ def http(
     ca_certs=certifi.where(),
     insecure=False,
 ) -> CheckResult:
+    '''HTTP request checking on response status (not >=400)'''
 
     if insecure:
         urllib3.disable_warnings()

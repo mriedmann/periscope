@@ -4,8 +4,10 @@ from pipecheck.checks.check import check
 from pipecheck.api import CheckResult, Ok, Err
 
 
-@check("Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)")
+@check
 def tcp(host, port, tcp_timeout) -> CheckResult:
+    '''Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)'''
+
     s = socket.socket()
     s.settimeout(tcp_timeout)
 

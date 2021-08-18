@@ -7,7 +7,7 @@ from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
 from termcolor import colored
 
-from pipecheck.checks import get_probes
+from pipecheck.checks import probes
 from pipecheck.api import CheckResult, Err, Ok, Warn
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
 from pipecheck.cmdfile import get_commands_from_config, get_config_from_yamlfile
@@ -16,9 +16,9 @@ REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all c
 
 CHECK_STATE_LABLES = ["url", "host", "port", "name"]
 CHECK_STATES = {}
-checks = get_probes()
-for check in checks:
-    labels = [x for x in checks[check].get_args(None) if x in CHECK_STATE_LABLES]
+
+for check in probes:
+    labels = [x for x in probes[check].get_args() if x in CHECK_STATE_LABLES]
     CHECK_STATES[check] = Enum(f"{check}_check_state", f"State of check {check}", labels, states=["Ok", "Warn", "Err"])
 
 commands = []
@@ -52,10 +52,10 @@ def gen_calls(args):
 
 def gen_call(command, config):
     f_name = command.pop("type")
-    if f_name not in checks:
+    if f_name not in probes:
         raise Exception(f"can't find check of type '{f_name}'")
     l_config = {**config, **command}
-    f = checks[f_name](**l_config)
+    f = probes[f_name](**l_config)
     return (f, f_name)
 
 

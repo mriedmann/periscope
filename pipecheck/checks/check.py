@@ -2,8 +2,7 @@ from functools import wraps
 from inspect import signature
 
 from pipecheck.api import Probe
-
-_probes = {}
+from pipecheck.checks import probes
 
 
 def make_adhoc_probe(f, args, help=""):
@@ -22,29 +21,26 @@ def make_adhoc_probe(f, args, help=""):
         def get_labels(self):
             return self.kwargs
 
-        def get_help(self):
+        @classmethod
+        def get_help(cls):
             return help
 
-        def get_args(self):
+        @classmethod
+        def get_args(cls):
             return args
 
-        def get_type(self):
+        @classmethod
+        def get_type(cls):
             return f.__name__
     return AdhocProbe
 
 
-def check(help):
-    def wrap(f):
-        sig = signature(f)
-        _probes[f.__name__] = make_adhoc_probe(f, list(sig.parameters.keys()), help)
+def check(f):
+    sig = signature(f)
+    probes[f.__name__] = make_adhoc_probe(f, list(sig.parameters.keys()), f.__doc__)
 
-        @wraps(f)
-        def wrapped_f(*args, **kwargs):
-            return f(*args, **kwargs)
+    @wraps(f)
+    def wrapped_f(*args, **kwargs):
+        return f(*args, **kwargs)
 
-        return wrapped_f
-
-    return wrap
-
-def get_probes():
-    return _probes
+    return wrapped_f

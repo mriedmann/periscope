@@ -1,4 +1,5 @@
-from pipecheck.checks.check import get_probes
+probes = {}
+
 from pipecheck.checks.icmp import ping
 from pipecheck.checks.http import http
 from pipecheck.checks.tcp import tcp
