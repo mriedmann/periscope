@@ -12,19 +12,19 @@ check-bump:
 
 bump-major: check-bump
 	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$((a+1)).0.0")
-	poetry version | xargs -i git commit -a -m "bump major-version from $(version) to {}"
+	poetry version -s| xargs -i git commit -a -m "bump major-version from $(version) to {}"
 	git push
 	poetry version -s | xargs -i gh release create v{}
 
 bump: check-bump
 	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$a.$$((b+1)).0")
-	poetry version | xargs -i git commit -a -m "bump minor-version from $(version) to {}"
+	poetry version -s | xargs -i git commit -a -m "bump minor-version from $(version) to {}"
 	git push
 	poetry version -s | xargs -i gh release create v{}
 
 bump-patch: check-bump
 	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$a.$$b.$$((c+1))")
-	poetry version | xargs -i git commit -a -m "bump patch-version from $(version) to {}"
+	poetry version -s | xargs -i git commit -a -m "bump patch-version from $(version) to {}"
 	git push
 	poetry version -s | xargs -i gh release create v{}
 
