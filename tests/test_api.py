@@ -1,7 +1,4 @@
 import unittest
-from typing import Type
-
-from parameterized import parameterized
 
 from pipecheck.api import Probe
 

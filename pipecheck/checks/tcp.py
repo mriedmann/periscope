@@ -1,10 +1,10 @@
 import socket
 
-from pipecheck.api import Probe, CheckResult, Ok, Err
+from pipecheck.api import CheckResult, Err, Ok, Probe
 
 
 class TcpProbe(Probe):
-    '''Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)'''
+    """Try simple TCP handshake on given host and port (e.g. 8.8.8.8:53)"""
 
     host: str = ""
     port: int = 0

@@ -23,11 +23,7 @@ class CliTests(unittest.TestCase):
             (["--ping", "8.8.8.8", "1.1.1.1"], {"ping": ["8.8.8.8", "1.1.1.1"]}),
             (
                 ["--http", "https://httpstat.us/200", "--tcp", "8.8.8.8:53", "--dns", "one.one.one.one=1.1.1.1,1.0.0.1"],
-                {
-                    "http": ["https://httpstat.us/200"],
-                    "tcp": ["8.8.8.8:53"],
-                    "dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]
-                }
+                {"http": ["https://httpstat.us/200"], "tcp": ["8.8.8.8:53"], "dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
             ),
         ]
     )

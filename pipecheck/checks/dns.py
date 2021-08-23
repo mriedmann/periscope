@@ -2,14 +2,14 @@ import socket
 
 from netaddr import IPAddress, IPNetwork
 
-from pipecheck.api import Probe, CheckResult, Ok, Err
+from pipecheck.api import CheckResult, Err, Ok, Probe
 
 
 class DnsProbe(Probe):
-    '''
+    """
     DNS resolution check against given IPv4 (e.g. www.google.com=172.217.23.36)
     NOTE: it is possible to use subnets as target using CIDR notation
-    '''
+    """
 
     name: str = ""
     ips: list[str] = []

@@ -1,10 +1,10 @@
 import icmplib
 
-from pipecheck.api import Probe, CheckResult, Ok, Warn, Err
+from pipecheck.api import CheckResult, Err, Ok, Probe, Warn
 
 
 class PingProbe(Probe):
-    '''ICMP ping check'''
+    """ICMP ping check"""
 
     host: str = ""
     ping_count: int = 1

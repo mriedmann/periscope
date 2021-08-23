@@ -1,5 +1,3 @@
-from icecream import ic
-
 class CheckResult:
     msg: str = ""
 
@@ -39,13 +37,13 @@ class Probe:
 
     @classmethod
     def get_args(cls):
-        return [i for i in cls.__dict__.keys() if i[:1] != '_']
+        return [i for i in cls.__dict__.keys() if i[:1] != "_"]
 
     def get_labels(self):
-        return {k: getattr(self, k) for k in self.__class__.__dict__ if k[:1] != '_'}
+        return {k: getattr(self, k) for k in self.__class__.__dict__ if k[:1] != "_"}
 
     def __call__(self) -> CheckResult:
         return Unk("No check implemented")
-    
+
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.get_labels()}>"

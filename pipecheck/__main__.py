@@ -7,8 +7,8 @@ from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
 from termcolor import colored
 
-from pipecheck.checks import probes
 from pipecheck.api import CheckResult, Err, Ok, Warn
+from pipecheck.checks import probes
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
 from pipecheck.cmdfile import get_commands_from_config, get_config_from_yamlfile
 

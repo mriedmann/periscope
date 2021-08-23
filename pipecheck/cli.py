@@ -3,6 +3,7 @@ import argparse
 from pipecheck import __version__
 from pipecheck.checks import probes
 
+
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description="Simple system-context testing tool")
 

@@ -3,11 +3,12 @@ import ssl
 import certifi
 import urllib3
 from icecream import ic
-from pipecheck.api import Probe, CheckResult, Ok, Warn, Err
+
+from pipecheck.api import CheckResult, Err, Ok, Probe, Warn
 
 
 class HttpProbe(Probe):
-    '''HTTP request checking on response status (not >=400)'''
+    """HTTP request checking on response status (not >=400)"""
 
     url: str = ""
     http_status: list[int] = list(range(200, 208)) + list(range(300, 308))

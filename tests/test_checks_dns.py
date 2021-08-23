@@ -8,7 +8,6 @@ from pipecheck.checks.dns import DnsProbe
 
 
 class CheckDnsTests(unittest.TestCase):
-
     @parameterized.expand(
         [
             ("dns.google", ["8.8.8.8", "8.8.4.4"], Ok),

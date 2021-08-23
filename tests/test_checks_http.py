@@ -8,7 +8,6 @@ from pipecheck.checks.http import HttpProbe
 
 
 class CheckHttpTests(unittest.TestCase):
-
     @parameterized.expand(
         [
             ("https://httpstat.us/200", Ok),

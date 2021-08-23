@@ -31,7 +31,7 @@ install: init
 lint: install
 	poetry run flake8 pipecheck tests --show-source --statistics --count
 
-format: lint
+format: install
 	poetry run isort pipecheck tests
 	poetry run black pipecheck tests
 

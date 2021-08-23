@@ -6,10 +6,10 @@ from parameterized import parameterized
 
 from pipecheck.__main__ import gen_call, print_result, run
 from pipecheck.api import Err, Ok, Warn
-from pipecheck.checks.icmp import PingProbe
-from pipecheck.checks.http import HttpProbe
-from pipecheck.checks.tcp import TcpProbe
 from pipecheck.checks.dns import DnsProbe
+from pipecheck.checks.http import HttpProbe
+from pipecheck.checks.icmp import PingProbe
+from pipecheck.checks.tcp import TcpProbe
 
 CRED = "\33[31m"
 CGREEN = "\33[32m"
@@ -34,23 +34,15 @@ class MainTests(unittest.TestCase):
 
     @parameterized.expand(
         [
+            ({"type": "http", "url": "https://httpstat.us/200"}, {}, (HttpProbe, {"url": "https://httpstat.us/200"})),
+            ({"host": "8.8.8.8", "port": 53, "type": "tcp"}, {}, (TcpProbe, {"host": "8.8.8.8", "port": 53})),
             (
-                {"type": "http", "url": "https://httpstat.us/200"},
-                {},
-                (HttpProbe, {"url": "https://httpstat.us/200"})
-            ), (
-                {"host": "8.8.8.8", "port": 53, "type": "tcp"},
-                {},
-                (TcpProbe, {"host": "8.8.8.8", "port": 53})
-            ), (
                 {"host": "1.1.1.1", "port": 53, "tcp_timeout": 0.1, "type": "tcp"},
                 {},
                 (TcpProbe, {"host": "1.1.1.1", "port": 53, "tcp_timeout": 0.1}),
-            ), (
-                {"type": "ping", "host": "8.8.8.8"},
-                {},
-                (PingProbe, {"host": "8.8.8.8"})
-            ), (
+            ),
+            ({"type": "ping", "host": "8.8.8.8"}, {}, (PingProbe, {"host": "8.8.8.8"})),
+            (
                 {"ips": ["8.8.8.8", "8.8.4.4"], "name": "dns.google", "type": "dns"},
                 {},
                 (DnsProbe, {"ips": ["8.8.8.8", "8.8.4.4"], "name": "dns.google"}),
