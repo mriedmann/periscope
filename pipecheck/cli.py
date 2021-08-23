@@ -40,7 +40,7 @@ def parse_args(args=None):
         help="don't exit but repeat checks in given interval. Also activates prometheus exporter",
     )
 
-    parser.add_argument("-p", "--port", nargs="?", default=9000, help="promtheus exporter port")
+    parser.add_argument("-p", "--port", nargs="?", default=9000, type=int, help="promtheus exporter port")
 
     for probe in probes:
         parser.add_argument("--%s" % probes[probe].get_type(), nargs="*", help=probes[probe].get_help())
