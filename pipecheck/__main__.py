@@ -7,7 +7,8 @@ from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
 from termcolor import colored
 
-from pipecheck.checks import CheckResult, Err, Ok, Warn, checks
+from pipecheck.api import CheckResult, Err, Ok, Warn
+from pipecheck.checks import probes
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
 from pipecheck.cmdfile import get_commands_from_config, get_config_from_yamlfile
 
@@ -15,8 +16,9 @@ REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all c
 
 CHECK_STATE_LABLES = ["url", "host", "port", "name"]
 CHECK_STATES = {}
-for check in checks:
-    labels = [x for x in checks[check]["args"] if x in CHECK_STATE_LABLES]
+
+for check in probes:
+    labels = [x for x in probes[check].get_args() if x in CHECK_STATE_LABLES]
     CHECK_STATES[check] = Enum(f"{check}_check_state", f"State of check {check}", labels, states=["Ok", "Warn", "Err"])
 
 commands = []
@@ -35,7 +37,7 @@ def print_result(result: CheckResult):
 def launch_checks(commands):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for cmd in commands:
-            yield (cmd, executor.submit(cmd[0], **cmd[1]))
+            yield (cmd, executor.submit(cmd[0]))
 
 
 def gen_calls(args):
@@ -50,17 +52,11 @@ def gen_calls(args):
 
 def gen_call(command, config):
     f_name = command.pop("type")
-    if f_name not in checks:
+    if f_name not in probes:
         raise Exception(f"can't find check of type '{f_name}'")
-    f = checks[f_name]["f"]
-    call_args = {}
     l_config = {**config, **command}
-    for check_arg in checks[f_name]["args"]:
-        if check_arg not in l_config:
-            continue
-        if l_config[check_arg]:
-            call_args[check_arg] = l_config[check_arg]
-    return (f, call_args)
+    f = probes[f_name](**l_config)
+    return (f, f_name)
 
 
 @REQUEST_TIME.time()
@@ -70,8 +66,8 @@ def run(calls):
     for (cmd, future) in launched_checks:
         result = future.result()
         print_result(result)
-        labels = {k: v for k, v in cmd[1].items() if k in CHECK_STATE_LABLES}
-        CHECK_STATES[cmd[0].__name__].labels(**labels).state(result.__class__.__name__)
+        labels = {k: v for k, v in cmd[0].get_labels().items() if k in CHECK_STATE_LABLES}
+        CHECK_STATES[cmd[1]].labels(**labels).state(result.__class__.__name__)
         if isinstance(result, Err):
             return_code = 1
 
