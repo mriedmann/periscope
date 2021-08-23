@@ -2,44 +2,43 @@ import ssl
 
 import certifi
 import urllib3
+from icecream import ic
+from pipecheck.api import Probe, CheckResult, Ok, Warn, Err
 
-from pipecheck.checks.check import check
-from pipecheck.api import CheckResult, Ok, Warn, Err
 
-
-@check
-def http(
-    url,
-    http_status=list(range(200, 208)) + list(range(300, 308)),
-    http_method="HEAD",
-    ca_certs=certifi.where(),
-    insecure=False,
-) -> CheckResult:
+class HttpProbe(Probe):
     '''HTTP request checking on response status (not >=400)'''
 
-    if insecure:
-        urllib3.disable_warnings()
+    url: str = ""
+    http_status: list[int] = list(range(200, 208)) + list(range(300, 308))
+    http_method: str = "HEAD"
+    ca_certs: str = certifi.where()
+    insecure: bool = False
 
-    def request(cert_reqs):
-        h = urllib3.PoolManager(ca_certs=ca_certs, cert_reqs=cert_reqs)
+    def __call__(self) -> CheckResult:
+        if self.insecure:
+            urllib3.disable_warnings()
+
+        def request(cert_reqs):
+            h = urllib3.PoolManager(ca_certs=self.ca_certs, cert_reqs=cert_reqs)
+            try:
+                response = ic(h.request(self.http_method, self.url, retries=False))
+                if ic(response.status) in self.http_status:
+                    return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status}")
+                return Err(f"HTTP {self.http_method} to '{self.url}' returned {response.status}")
+            finally:
+                h.clear()
+
         try:
-            response = h.request(http_method, url, retries=False)
-            if response.status in http_status:
-                return Ok(f"HTTP {http_method} to '{url}' returned {response.status}")
-            return Err(f"HTTP {http_method} to '{url}' returned {response.status}")
-        finally:
-            h.clear()
-
-    try:
-        return request(cert_reqs=ssl.CERT_REQUIRED)
-    except urllib3.exceptions.SSLError as e:
-        if not insecure:
-            return Err(f"HTTP {http_method} to '{url}' failed ({e})")
-        result = request(cert_reqs=ssl.CERT_NONE)
-        msg = f"{result.msg}. SSL Certificate verification failed on '{url}' ({e})"
-        if isinstance(result, Ok):
-            return Warn(msg)
-        else:
-            return Err(msg)
-    except Exception as e:
-        return Err(f"HTTP {http_method} to '{url}' failed ({e.__class__}: {e})")
+            return request(cert_reqs=ssl.CERT_REQUIRED)
+        except urllib3.exceptions.SSLError as e:
+            if not self.insecure:
+                return Err(f"HTTP {self.http_method} to '{self.url}' failed ({e})")
+            result = request(cert_reqs=ssl.CERT_NONE)
+            msg = f"{result.msg}. SSL Certificate verification failed on '{self.url}' ({e})"
+            if isinstance(result, Ok):
+                return Warn(msg)
+            else:
+                return Err(msg)
+        except Exception as e:
+            return Err(f"HTTP {self.http_method} to '{self.url}' failed ({e.__class__}: {e})")

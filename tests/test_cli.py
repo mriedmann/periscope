@@ -51,8 +51,8 @@ class CliTests(unittest.TestCase):
                 {"http": ["https://httpstat.us/200"], "tcp": ["8.8.8.8:53"], "dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
                 [
                     ({"type": "http", "url": "https://httpstat.us/200"}),
-                    ({"type": "tcp", "host": "8.8.8.8", "port": 53}),
                     ({"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1", "1.0.0.1"]}),
+                    ({"type": "tcp", "host": "8.8.8.8", "port": 53}),
                 ],
             ),
         ]

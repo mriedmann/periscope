@@ -4,7 +4,7 @@ from typing import Type
 from parameterized import parameterized
 
 from pipecheck.api import Err, Ok, Warn
-from pipecheck.checks import http
+from pipecheck.checks.http import HttpProbe
 
 
 class CheckHttpTests(unittest.TestCase):
@@ -19,7 +19,7 @@ class CheckHttpTests(unittest.TestCase):
         ]
     )
     def test_http_nocert(self, target, return_type: Type):
-        result = http(target, insecure=True)
+        result = HttpProbe(url=target, insecure=True)()
         self.assertIsInstance(result, return_type, result.msg)
 
     @parameterized.expand(
@@ -30,7 +30,7 @@ class CheckHttpTests(unittest.TestCase):
         ]
     )
     def test_http_certcheck(self, target, return_type: Type):
-        result = http(target)
+        result = HttpProbe(url=target)()
         self.assertIsInstance(result, return_type, result.msg)
 
     @parameterized.expand(
@@ -41,7 +41,7 @@ class CheckHttpTests(unittest.TestCase):
         ]
     )
     def test_http_status(self, target, status, return_type: Type):
-        result = http(target, status)
+        result = HttpProbe(url=target, http_status=status)()
         self.assertIsInstance(result, return_type, result.msg)
 
 

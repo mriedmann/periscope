@@ -4,7 +4,7 @@ from typing import Type
 from parameterized import parameterized
 
 from pipecheck.api import Err, Ok
-from pipecheck.checks import dns
+from pipecheck.checks.dns import DnsProbe
 
 
 class CheckDnsTests(unittest.TestCase):
@@ -23,7 +23,7 @@ class CheckDnsTests(unittest.TestCase):
         ]
     )
     def test_dns(self, target, ips, return_type: Type):
-        result = dns(target, ips)
+        result = DnsProbe(name=target, ips=ips)()
         self.assertIsInstance(result, return_type, result.msg)
 
 
