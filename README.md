@@ -2,6 +2,8 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/mriedmann/pipecheck/badge.svg?branch=main)](https://coveralls.io/github/mriedmann/pipecheck?branch=main) [![Python application](https://github.com/mriedmann/pipecheck/actions/workflows/python-app.yaml/badge.svg)](https://github.com/mriedmann/pipecheck/actions/workflows/python-app.yaml)
 
+> :warning: Because Docker-hub is no longer offering free auto-builds ([ref](https://www.docker.com/blog/changes-to-docker-hub-autobuilds/)) and limits public access of open-source images ([ref](https://www.docker.com/increase-rate-limits)), I will only publish to pypi.org and ghcr.io from now on. If you are still using the docker.io registry, consider pulling from ghcr.io instead.
+
 This simple tool can be used to verify the state of a system's context. It is meant to be used as test or init container e.g. to make sure that all needed connections are available. 
 
 ## The name
@@ -32,7 +34,7 @@ $ python -m pipecheck \
 Alternatively, just use the pre-built docker-image.
 
 ```bash
-$ docker run --rm docker.io/mriedmann/pipecheck --ping 8.8.8.8
+$ docker run --rm ghcr.io/mriedmann/pipecheck --ping 8.8.8.8
 [OK]     ICMP '8.8.8.8' reachable (30.017ms)
 ```
 
@@ -77,7 +79,7 @@ b:
       port: 53
 ```
 
-Commandline arguments will be taken into account. This is can be used to define global config parameters like tcp-timeout.
+Commandline arguments will be taken into account. This can be used to define global config parameters like tcp-timeout.
 
 ### Remote use
 
@@ -86,18 +88,18 @@ Using stdin with `-f -` as input gives you the possibility to pipe a local comma
 To execute checks against k8s just use `kubectl run`.
 
 ```bash
-$ cat example.yaml | kubectl run --image=docker.io/mriedmann/pipecheck:latest --rm --restart=Never -i checks -- -f -
+$ cat example.yaml | kubectl run --image=ghcr.io/mriedmann/pipecheck:latest --rm --restart=Never -i checks -- -f -
 ```
 
 If you want to use a remote host with docker installed, just use `docker run`.
 
 ```bash
-$ cat example.yaml | ssh $HOST 'docker run --rm -i docker.io/mriedmann/pipecheck:latest -f - '
+$ cat example.yaml | ssh $HOST 'docker run --rm -i ghcr.io/mriedmann/pipecheck:latest -f - '
 ```
 
 ## Checks
 
-All currently available checks can be find in `checks.py`. If you miss any, feel free to open a feature request or PR.
+All currently available checks can be found in `checks.py`. If you miss any, feel free to open a feature request or PR.
 
 ### Ping
 
