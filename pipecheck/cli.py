@@ -1,5 +1,7 @@
 import argparse
 
+from icecream import ic
+
 from pipecheck import __version__
 from pipecheck.checks import probes
 from pipecheck.cli_backport import BooleanOptionalAction
@@ -78,16 +80,10 @@ def parse_ping(x):
 
 
 def get_commands_and_config_from_args(args: dict):
-    l_checks = {}
-    for probe in probes:
-        if probe not in args:
-            continue
-        l_check = args.pop(probe)
-        if l_check:
-            l_checks[probe] = l_check
-
     commands = []
-    for check in l_checks:
-        for param in l_checks[check]:
-            commands.append(globals()[f"parse_{check}"](param))
+    for k, v in ic(args.items()):
+        if v is None or k not in probes:
+            continue
+        for param in v:
+            commands.append(ic(globals()[f"parse_{k}"](param)))
     return (commands, args)

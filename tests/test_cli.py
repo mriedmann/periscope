@@ -1,5 +1,6 @@
 import unittest
 
+from icecream import ic
 from parameterized import parameterized
 
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
@@ -55,7 +56,9 @@ class CliTests(unittest.TestCase):
         ]
     )
     def test_cli(self, args, expected_commands):
-        (commands, _) = list(get_commands_and_config_from_args(args))
+        (commands, _) = ic(list(get_commands_and_config_from_args(args)))
+        commands.sort(key=lambda x: x["type"])
+        expected_commands.sort(key=lambda x: x["type"])
         self.assertSubsetList(commands, expected_commands)
 
     @parameterized.expand(
