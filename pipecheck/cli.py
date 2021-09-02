@@ -4,6 +4,7 @@ from pipecheck import __version__
 from pipecheck.checks import probes
 from pipecheck.cli_backport import BooleanOptionalAction
 
+
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description="Simple system-context testing tool")
 

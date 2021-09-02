@@ -25,7 +25,7 @@ class CliTests(unittest.TestCase):
                 ["--http", "https://httpstat.us/200", "--tcp", "8.8.8.8:53", "--dns", "one.one.one.one=1.1.1.1,1.0.0.1"],
                 {"http": ["https://httpstat.us/200"], "tcp": ["8.8.8.8:53"], "dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
             ),
-            (["-i", "30", "-p", "9990"], {"port": 9990, "interval": 30})
+            (["-i", "30", "-p", "9990"], {"port": 9990, "interval": 30}),
         ]
     )
     def test_cli_parser(self, params, expected_args):
