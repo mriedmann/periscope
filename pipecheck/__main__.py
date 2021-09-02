@@ -34,12 +34,6 @@ def print_result(result: CheckResult):
         print(colored("[ERROR] ", "red"), result.msg)
 
 
-def launch_checks(commands):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        for cmd in commands:
-            yield (cmd, executor.submit(cmd[0]))
-
-
 def gen_calls(args):
     (commands, config) = get_commands_and_config_from_args(args)
     if "file" in args and args["file"]:
@@ -61,15 +55,17 @@ def gen_call(command, config):
 
 @REQUEST_TIME.time()
 def run(calls):
-    launched_checks = ic(list(launch_checks(calls)))
-    return_code = 0
-    for (cmd, future) in launched_checks:
-        result = future.result()
-        print_result(result)
-        labels = {k: v for k, v in cmd[0].get_labels().items() if k in CHECK_STATE_LABLES}
-        CHECK_STATES[cmd[1]].labels(**labels).state(result.__class__.__name__)
-        if isinstance(result, Err):
-            return_code = 1
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        launched_checks = ic({executor.submit(cmd[0]): cmd for cmd in calls})
+        return_code = 0
+        for future in concurrent.futures.as_completed(launched_checks):
+            cmd = launched_checks[future]
+            result = future.result()
+            print_result(result)
+            labels = {k: v for k, v in cmd[0].get_labels().items() if k in CHECK_STATE_LABLES}
+            CHECK_STATES[cmd[1]].labels(**labels).state(result.__class__.__name__)
+            if isinstance(result, Err):
+                return_code = 1
 
     return return_code
 
