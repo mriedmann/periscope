@@ -23,6 +23,8 @@ def parse_args(args=None):
         "--http-method", nargs="?", type=str, default="HEAD", help="sets the HTTP method that should be used (e.g GET)"
     )
 
+    parser.add_argument("--http-timeout", nargs="?", type=int, help="sets the tcp timeout in seconds (e.g 2)")
+
     parser.add_argument("--ping-count", nargs="?", default=1, help="sets the amount of ICMP ping requests sent")
 
     parser.add_argument("--ca-certs", nargs="?", help="sets path to custom ca-bundle. If not set bundled Root-CAs are used.")

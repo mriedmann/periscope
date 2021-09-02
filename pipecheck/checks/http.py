@@ -13,6 +13,7 @@ class HttpProbe(Probe):
     url: str = ""
     http_status: list = list(range(200, 208)) + list(range(300, 308))
     http_method: str = "HEAD"
+    http_timeout: int = 5
     ca_certs: str = certifi.where()
     insecure: bool = False
 
@@ -23,7 +24,7 @@ class HttpProbe(Probe):
         def request(cert_reqs):
             h = urllib3.PoolManager(ca_certs=self.ca_certs, cert_reqs=cert_reqs)
             try:
-                response = ic(h.request(self.http_method, self.url, retries=False))
+                response = ic(h.request(self.http_method, self.url, retries=False, timeout=self.http_timeout))
                 if ic(response.status) in self.http_status:
                     return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status}")
                 return Err(f"HTTP {self.http_method} to '{self.url}' returned {response.status}")
