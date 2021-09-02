@@ -1,0 +1,16 @@
+ARG python_version=3.9
+FROM docker.io/library/python:$python_version-alpine
+
+WORKDIR /usr/src/app
+
+RUN apk --no-cache add curl make build-base \
+ && curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+
+COPY entrypoint.ci.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+COPY Makefile poetry.lock pyproject.toml /usr/src/app/
+RUN /entrypoint.sh make install
+
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "make", "test" ]

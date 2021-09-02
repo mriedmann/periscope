@@ -2,13 +2,13 @@ import argparse
 
 from pipecheck import __version__
 from pipecheck.checks import probes
-
+from pipecheck.cli_backport import BooleanOptionalAction
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description="Simple system-context testing tool")
 
     parser.add_argument(
-        "-v", "--verbose", action=argparse.BooleanOptionalAction, help="enabled detailed output (might be hard to parse)"
+        "-v", "--verbose", action=BooleanOptionalAction, help="enabled detailed output (might be hard to parse)"
     )
 
     parser.add_argument("--version", action="version", version="pipecheck {version}".format(version=__version__))
@@ -28,7 +28,7 @@ def parse_args(args=None):
     parser.add_argument("--ca-certs", nargs="?", help="sets path to custom ca-bundle. If not set bundled Root-CAs are used.")
 
     parser.add_argument(
-        "-k", "--insecure", action=argparse.BooleanOptionalAction, help="don't fail on tls certificate validation errors"
+        "-k", "--insecure", action=BooleanOptionalAction, help="don't fail on tls certificate validation errors"
     )
 
     parser.add_argument(

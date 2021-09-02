@@ -12,7 +12,7 @@ class DnsProbe(Probe):
     """
 
     name: str = ""
-    ips: list[str] = []
+    ips: list = []
 
     def __call__(self) -> CheckResult:
         name = self.name

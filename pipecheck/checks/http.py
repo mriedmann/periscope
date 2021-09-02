@@ -11,7 +11,7 @@ class HttpProbe(Probe):
     """HTTP request checking on response status (not >=400)"""
 
     url: str = ""
-    http_status: list[int] = list(range(200, 208)) + list(range(300, 308))
+    http_status: list = list(range(200, 208)) + list(range(300, 308))
     http_method: str = "HEAD"
     ca_certs: str = certifi.where()
     insecure: bool = False

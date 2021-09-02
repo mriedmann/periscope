@@ -6,7 +6,7 @@ authors = ["Michael Riedmann <michael_riedmann@live.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.7"
 certifi = "^2021.5.30"
 icecream = "^2.1.0"
 icmplib = "^3.0"
