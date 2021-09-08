@@ -1,5 +1,3 @@
-import ssl
-
 import certifi
 import requests
 from icecream import ic
