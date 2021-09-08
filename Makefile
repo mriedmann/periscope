@@ -11,19 +11,22 @@ check-bump:
 	[ "$(shell git rev-parse --abbrev-ref HEAD)" == "main" ] || { echo "bumping only possible on main branch"; exit 1; }
 
 bump-major: check-bump
-	poetry version $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$((a+1)).0.0")
-	echo "__version__ = \"$(poetry version -s)\"" > pipecheck/__init__.py
-	poetry version -s| xargs -i git commit -a -m "bump major-version from $(version) to {}"
+	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$((a+1)).0.0"))
+	poetry version $(new_version)
+	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
+	git commit -a -m "bump major-version from $(version) to $(new_version)"
 
 bump: check-bump
-	poetry version $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$((b+1)).0")
-	echo "__version__ = \"$(poetry version -s)\"" > pipecheck/__init__.py
-	poetry version -s | xargs -i git commit -a -m "bump minor-version from $(version) to {}"
+	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$((b+1)).0"))
+	poetry version $(new_version)
+	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
+	git commit -a -m "bump minor-version from $(version) to $(new_version)"
 
 bump-patch: check-bump
-	poetry version $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$b.$$((c+1))")
-	echo "__version__ = \"$(poetry version -s)\"" > pipecheck/__init__.py
-	poetry version -s | xargs -i git commit -a -m "bump patch-version from $(version) to {}"
+	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$b.$$((c+1))"))
+	poetry version $(new_version)
+	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
+	git commit -a -m "bump patch-version from $(version) to $(new_version)"
 
 release:
 	git push
