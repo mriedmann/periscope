@@ -1,7 +1,7 @@
 .PHONY: init bump bump-minor update build test build_image test_image publish
 pwd = $(shell pwd)
 version = $(shell poetry version -s)
-short_version = $(shell poetry version -s | cut -d'+' -f1)
+short_version = $(shell poetry version -s | cut -d'+' -d'-' -f1)
 
 init:
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
@@ -11,20 +11,21 @@ check-bump:
 	[ "$(shell git rev-parse --abbrev-ref HEAD)" == "main" ] || { echo "bumping only possible on main branch"; exit 1; }
 
 bump-major: check-bump
-	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$((a+1)).0.0")
+	poetry version $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$((a+1)).0.0")
+	echo "__version__ = \"$(poetry version -s)\"" > pipecheck/__init__.py
 	poetry version -s| xargs -i git commit -a -m "bump major-version from $(version) to {}"
-	git push
-	poetry version -s | xargs -i gh release create v{}
 
 bump: check-bump
-	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$a.$$((b+1)).0")
+	poetry version $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$((b+1)).0")
+	echo "__version__ = \"$(poetry version -s)\"" > pipecheck/__init__.py
 	poetry version -s | xargs -i git commit -a -m "bump minor-version from $(version) to {}"
-	git push
-	poetry version -s | xargs -i gh release create v{}
 
 bump-patch: check-bump
-	poetry version $(shell IFS=. read -r a b c<<<"$(version)";echo "$$a.$$b.$$((c+1))")
+	poetry version $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$b.$$((c+1))")
+	echo "__version__ = \"$(poetry version -s)\"" > pipecheck/__init__.py
 	poetry version -s | xargs -i git commit -a -m "bump patch-version from $(version) to {}"
+
+release:
 	git push
 	poetry version -s | xargs -i gh release create v{}
 
