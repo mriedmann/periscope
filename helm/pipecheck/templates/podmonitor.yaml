@@ -1,0 +1,14 @@
+{{- if .Values.monitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "pipecheck.fullname" . }}
+  labels:
+    {{- include "pipecheck.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "pipecheck.selectorLabels" . | nindent 6 }}
+  podMetricsEndpoints:
+  - port: http
+{{- end }}

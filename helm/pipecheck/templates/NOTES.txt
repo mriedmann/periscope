@@ -1,0 +1,5 @@
+You can test pipecheck using the following commands:
+
+export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "pipecheck.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+echo "Visit http://127.0.0.1:9000/metrics to get metrics"
+kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 9000:9000
