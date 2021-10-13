@@ -69,6 +69,14 @@ def run(calls):
 
     return return_code
 
+class GracefulKiller:
+  kill_now = False
+  def __init__(self):
+    signal.signal(signal.SIGINT, self.exit_gracefully)
+    signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+  def exit_gracefully(self, *args):
+    self.kill_now = True
 
 if __name__ == "__main__":
     args = parse_args()
@@ -80,10 +88,15 @@ if __name__ == "__main__":
     calls = list(gen_calls(args))
     ic(calls)
 
+    last_status = 0
     if "interval" in args and args["interval"]:
         start_http_server(args["port"])
+        killer = GracefulKiller()
         while True:
-            run(calls)
+            last_status = run(calls)
+            if killer.kill_now:
+                break
             time.sleep(float(args["interval"]))
     else:
-        exit(run(calls))
+        last_status = run(calls)
+    exit(last_status)
