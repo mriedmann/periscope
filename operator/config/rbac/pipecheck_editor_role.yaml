@@ -1,0 +1,24 @@
+# permissions for end users to edit pipechecks.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pipecheck-editor-role
+rules:
+- apiGroups:
+  - charts.operators.r3i.at
+  resources:
+  - pipechecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - charts.operators.r3i.at
+  resources:
+  - pipechecks/status
+  verbs:
+  - get

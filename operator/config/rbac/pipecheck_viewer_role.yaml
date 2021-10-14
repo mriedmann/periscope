@@ -1,0 +1,20 @@
+# permissions for end users to view pipechecks.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pipecheck-viewer-role
+rules:
+- apiGroups:
+  - charts.operators.r3i.at
+  resources:
+  - pipechecks
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - charts.operators.r3i.at
+  resources:
+  - pipechecks/status
+  verbs:
+  - get

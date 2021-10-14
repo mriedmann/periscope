@@ -1,0 +1,6 @@
+# Use the 'create api' subcommand to add watches to this file.
+- group: charts.operators.r3i.at
+  version: v1alpha1
+  kind: Pipecheck
+  chart: helm-charts/pipecheck
+#+kubebuilder:scaffold:watch

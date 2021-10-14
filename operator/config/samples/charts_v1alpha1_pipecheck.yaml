@@ -1,0 +1,24 @@
+apiVersion: charts.operators.r3i.at/v1alpha1
+kind: Pipecheck
+metadata:
+  name: pipecheck-sample
+spec:
+  # Default values copied from <project_dir>/helm-charts/pipecheck/values.yaml
+  affinity: {}
+  checks: {}
+  debug: false
+  fullnameOverride: ""
+  image:
+    pullPolicy: IfNotPresent
+    repository: ghcr.io/mriedmann/pipecheck
+    tag: ""
+  imagePullSecrets: []
+  interval: 30
+  monitor:
+    enabled: true
+  nameOverride: ""
+  nodeSelector: {}
+  podAnnotations: {}
+  tolerations: {}
+  
+  
