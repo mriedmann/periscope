@@ -14,6 +14,8 @@ def parse_args(args=None):
         "-v", "--verbose", action=BooleanOptionalAction, help="enabled detailed output (might be hard to parse)"
     )
 
+    parser.add_argument("-M", "--no-color", action=BooleanOptionalAction, help="disable output colorization")
+
     parser.add_argument("--version", action="version", version="pipecheck {version}".format(version=__version__))
 
     parser.add_argument("-f", "--file", nargs="?", type=str, help="provide a yaml file as configuration")

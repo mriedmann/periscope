@@ -1,6 +1,7 @@
 #!/usr/bin/env /usr/bin/python3
 
 import concurrent.futures
+import os
 import signal
 import sys
 import time
@@ -23,17 +24,31 @@ for check in probes:
     labels = [x for x in probes[check].get_args() if x in CHECK_STATE_LABLES]
     CHECK_STATES[check] = Enum(f"{check}_check_state", f"State of check {check}", labels, states=["Ok", "Warn", "Err"])
 
+no_color = False
+
 commands = []
 results = []
 
 
+def supports_color():
+    plat = sys.platform
+    supported_platform = plat != "Pocket PC" and (plat != "win32" or "ANSICON" in os.environ)
+    is_a_tty = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+    return supported_platform and is_a_tty
+
+
 def print_result(result: CheckResult):
+    if not no_color:
+        c = colored
+    else:
+        c = lambda msg, _: msg
+
     if isinstance(result, Warn):
-        print(colored("[WARN]  ", "yellow"), result.msg, flush=True)
+        print(c("[WARN]  ", "yellow"), result.msg, flush=True)
     elif isinstance(result, Ok):
-        print(colored("[OK]    ", "green"), result.msg, flush=True)
+        print(c("[OK]    ", "green"), result.msg, flush=True)
     elif isinstance(result, Err):
-        print(colored("[ERROR] ", "red"), result.msg, flush=True)
+        print(c("[ERROR] ", "red"), result.msg, flush=True)
 
 
 def print_error(msg: str):
@@ -86,6 +101,8 @@ if __name__ == "__main__":
 
     if not ("verbose" in args and args["verbose"]):
         ic.disable()
+    if not supports_color() or ("no_color" in args and args["no_color"]):
+        no_color = True
     ic(args)
 
     calls = list(gen_calls(args))
