@@ -2,6 +2,8 @@
 
 import concurrent.futures
 import time
+import signal
+import sys
 
 from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
@@ -27,12 +29,14 @@ results = []
 
 def print_result(result: CheckResult):
     if isinstance(result, Warn):
-        print(colored("[WARN]  ", "yellow"), result.msg)
+        print(colored("[WARN]  ", "yellow"), result.msg, flush=True)
     elif isinstance(result, Ok):
-        print(colored("[OK]    ", "green"), result.msg)
+        print(colored("[OK]    ", "green"), result.msg, flush=True)
     elif isinstance(result, Err):
-        print(colored("[ERROR] ", "red"), result.msg)
+        print(colored("[ERROR] ", "red"), result.msg, flush=True)
 
+def print_error(msg: str):
+    print(msg, file=sys.stderr, flush=True)
 
 def gen_calls(args):
     (commands, config) = get_commands_and_config_from_args(args)
@@ -55,7 +59,7 @@ def gen_call(command, config):
 
 @REQUEST_TIME.time()
 def run(calls):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         launched_checks = ic({executor.submit(cmd[0]): cmd for cmd in calls})
         return_code = 0
         for future in concurrent.futures.as_completed(launched_checks):
@@ -69,14 +73,9 @@ def run(calls):
 
     return return_code
 
-class GracefulKiller:
-  kill_now = False
-  def __init__(self):
-    signal.signal(signal.SIGINT, self.exit_gracefully)
-    signal.signal(signal.SIGTERM, self.exit_gracefully)
-
-  def exit_gracefully(self, *args):
-    self.kill_now = True
+def signal_handler(signal, frame):
+    print_error(f"signal {signal} received. exited.")
+    sys.exit(0)
 
 if __name__ == "__main__":
     args = parse_args()
@@ -87,15 +86,19 @@ if __name__ == "__main__":
 
     calls = list(gen_calls(args))
     ic(calls)
+    if len(calls) <= 0:
+        print_error("No probes specified")
+        sys.exit(0)
 
     last_status = 0
     if "interval" in args and args["interval"]:
         start_http_server(args["port"])
-        killer = GracefulKiller()
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+
         while True:
             last_status = run(calls)
-            if killer.kill_now:
-                break
             time.sleep(float(args["interval"]))
     else:
         last_status = run(calls)
