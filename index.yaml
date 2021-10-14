@@ -3,6 +3,17 @@ entries:
   pipecheck:
   - apiVersion: v2
     appVersion: 0.3.3
+    created: "2021-10-14T02:45:15.417074722Z"
+    description: A Helm chart for pipecheck, a simple tool that can be used to verify
+      the state of a system's context.
+    digest: d26d60f1483decf06056add23b6d80e0d2863450a7446fbc71f149ce95c966e6
+    name: pipecheck
+    type: application
+    urls:
+    - https://github.com/mriedmann/pipecheck/releases/download/helm-0.2.1/pipecheck-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
+    appVersion: 0.3.3
     created: "2021-10-14T02:25:39.508080508Z"
     description: A Helm chart for pipecheck, a simple tool that can be used to verify
       the state of a system's context.
@@ -12,4 +23,4 @@ entries:
     urls:
     - https://github.com/mriedmann/pipecheck/releases/download/pipecheck-0.2.0/pipecheck-0.2.0.tgz
     version: 0.2.0
-generated: "2021-10-14T02:25:39.508086608Z"
+generated: "2021-10-14T02:45:15.417087023Z"
