@@ -38,10 +38,13 @@ def supports_color():
 
 
 def print_result(result: CheckResult):
+    def non_colored(msg, _):
+        return msg
+
     if not no_color:
         c = colored
     else:
-        c = lambda msg, _: msg
+        c = non_colored
 
     if isinstance(result, Warn):
         print(c("[WARN]  ", "yellow"), result.msg, flush=True)
