@@ -1,9 +1,9 @@
 #!/usr/bin/env /usr/bin/python3
 
 import concurrent.futures
-import time
 import signal
 import sys
+import time
 
 from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
@@ -35,8 +35,10 @@ def print_result(result: CheckResult):
     elif isinstance(result, Err):
         print(colored("[ERROR] ", "red"), result.msg, flush=True)
 
+
 def print_error(msg: str):
     print(msg, file=sys.stderr, flush=True)
+
 
 def gen_calls(args):
     (commands, config) = get_commands_and_config_from_args(args)
@@ -73,9 +75,11 @@ def run(calls):
 
     return return_code
 
+
 def signal_handler(signal, frame):
     print_error(f"signal {signal} received. exited.")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     args = parse_args()
