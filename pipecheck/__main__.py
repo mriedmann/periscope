@@ -1,6 +1,8 @@
 #!/usr/bin/env /usr/bin/python3
 
 import concurrent.futures
+import signal
+import sys
 import time
 
 from icecream import ic
@@ -27,11 +29,15 @@ results = []
 
 def print_result(result: CheckResult):
     if isinstance(result, Warn):
-        print(colored("[WARN]  ", "yellow"), result.msg)
+        print(colored("[WARN]  ", "yellow"), result.msg, flush=True)
     elif isinstance(result, Ok):
-        print(colored("[OK]    ", "green"), result.msg)
+        print(colored("[OK]    ", "green"), result.msg, flush=True)
     elif isinstance(result, Err):
-        print(colored("[ERROR] ", "red"), result.msg)
+        print(colored("[ERROR] ", "red"), result.msg, flush=True)
+
+
+def print_error(msg: str):
+    print(msg, file=sys.stderr, flush=True)
 
 
 def gen_calls(args):
@@ -55,7 +61,7 @@ def gen_call(command, config):
 
 @REQUEST_TIME.time()
 def run(calls):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         launched_checks = ic({executor.submit(cmd[0]): cmd for cmd in calls})
         return_code = 0
         for future in concurrent.futures.as_completed(launched_checks):
@@ -70,6 +76,11 @@ def run(calls):
     return return_code
 
 
+def signal_handler(signal, frame):
+    print_error(f"signal {signal} received. exited.")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -79,11 +90,20 @@ if __name__ == "__main__":
 
     calls = list(gen_calls(args))
     ic(calls)
+    if len(calls) <= 0:
+        print_error("No probes specified")
+        sys.exit(0)
 
+    last_status = 0
     if "interval" in args and args["interval"]:
         start_http_server(args["port"])
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+
         while True:
-            run(calls)
+            last_status = run(calls)
             time.sleep(float(args["interval"]))
     else:
-        exit(run(calls))
+        last_status = run(calls)
+    exit(last_status)
