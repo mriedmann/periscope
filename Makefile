@@ -13,18 +13,21 @@ check-bump:
 bump-major: check-bump
 	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$((a+1)).0.0"))
 	poetry version $(new_version)
+	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
 	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
 	git commit -a -m "bump major-version from $(version) to $(new_version)"
 
 bump: check-bump
 	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$((b+1)).0"))
 	poetry version $(new_version)
+	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
 	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
 	git commit -a -m "bump minor-version from $(version) to $(new_version)"
 
 bump-patch: check-bump
 	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$b.$$((c+1))"))
 	poetry version $(new_version)
+	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
 	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
 	git commit -a -m "bump patch-version from $(version) to $(new_version)"
 
