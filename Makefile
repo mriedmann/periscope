@@ -2,11 +2,14 @@
 pwd = $(shell pwd)
 version = $(shell poetry version -s)
 short_version = $(shell poetry version -s | cut -d'+' -d'-' -f1)
+helm_version = $(shell yq r helm/pipecheck/Chart.yaml 'version')
+helm_short_version = $(shell yq r helm/pipecheck/Chart.yaml 'version' | cut -d'+' -d'-' -f1)
 
 init:
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
 check-bump:
+	which yq || { echo "yq not installed!"; exit 1; }
 	which gh || { echo "gh (github cli) not installed!"; exit 1; }
 	[ "$(shell git rev-parse --abbrev-ref HEAD)" == "main" ] || { echo "bumping only possible on main branch"; exit 1; }
 
@@ -30,6 +33,21 @@ bump-patch: check-bump
 	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
 	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
 	git commit -a -m "bump patch-version from $(version) to $(new_version)"
+
+helm-bump-major: check-bump
+	$(eval helm_new_version = $(shell IFS=. read -r a b c<<<"$(helm_short_version)";echo "$$((a+1)).0.0"))
+	sed -i 's/version: .*/version: $(helm_new_version)/' helm/pipecheck/Chart.yaml
+	git commit -a -m "bump helm minor-version from $(helm_version) to $(helm_new_version)"
+
+helm-bump: check-bump
+	$(eval helm_new_version = $(shell IFS=. read -r a b c<<<"$(helm_short_version)";echo "$$a.$$((b+1)).0"))
+	sed -i 's/version: .*/version: $(helm_new_version)/' helm/pipecheck/Chart.yaml
+	git commit -a -m "bump helm minor-version from $(helm_version) to $(helm_new_version)"
+
+helm-bump-patch: check-bump
+	$(eval helm_new_version = $(shell IFS=. read -r a b c<<<"$(helm_short_version)";echo "$$a.$$b.$$((c+1))"))
+	sed -i 's/version: .*/version: $(helm_new_version)/' helm/pipecheck/Chart.yaml
+	git commit -a -m "bump helm minor-version from $(helm_version) to $(helm_new_version)"
 
 release:
 	git push
