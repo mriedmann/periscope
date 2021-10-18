@@ -1,0 +1,10 @@
+apiVersion: pipecheck.r3i.at/v1alpha1
+kind: Check
+metadata:
+  name: pipecheck-sample
+spec:
+  just_a_check_key_name:
+    type: tcp
+    host: 8.8.8.8
+    port: 53
+  

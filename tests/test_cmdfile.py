@@ -3,9 +3,8 @@ import unittest
 from io import StringIO
 
 import yaml
-from parameterized import parameterized
 
-from pipecheck.cmdfile import get_commands_from_config, get_config_from_yamlfile
+from pipecheck.cmdfile import get_config_from_yamlfile
 
 
 def stub_stdin(testcase_inst, inputs):
@@ -33,22 +32,3 @@ class CmdfileTests(unittest.TestCase):
             stub_stdin(self, yaml_file.read())
         data = get_config_from_yamlfile("-")
         self.assertEqual(self.test_data, data)
-
-    @parameterized.expand(
-        [
-            ({"type": "ping", "host": "8.8.8.8"}, [{"type": "ping", "host": "8.8.8.8"}]),
-            (
-                {"a": {"type": "ping", "host": "8.8.8.8"}, "b": {"type": "tcp", "host": "8.8.8.8", "port": 53}},
-                [{"type": "ping", "host": "8.8.8.8"}, {"type": "tcp", "host": "8.8.8.8", "port": 53}],
-            ),
-            ({"a": {"b": {"c": {"type": "ping", "host": "8.8.8.8"}}}}, [{"type": "ping", "host": "8.8.8.8"}]),
-            (
-                {"a": {"type": "ping", "host": "8.8.8.8", "b": {"type": "tcp", "host": "8.8.8.8", "port": 53}}},
-                [{"type": "ping", "host": "8.8.8.8"}],
-            ),
-        ]
-    )
-    def test_getcommands(self, config, expected_commands):
-        commands = get_commands_from_config(config)
-        for i in range(0, len(expected_commands)):
-            self.assertEqual(commands[i], expected_commands[i])

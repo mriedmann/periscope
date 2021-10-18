@@ -13,7 +13,8 @@ from termcolor import colored
 from pipecheck.api import CheckResult, Err, Ok, Warn
 from pipecheck.checks import probes
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
-from pipecheck.cmdfile import get_commands_from_config, get_config_from_yamlfile
+from pipecheck.cmdfile import get_config_from_yamlfile
+from pipecheck.k8s import get_config_from_kubernetes
 
 REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all checks")
 
@@ -58,10 +59,32 @@ def print_error(msg: str):
     print(msg, file=sys.stderr, flush=True)
 
 
+def get_commands_from_config(c):
+    commands = []
+
+    def scan(x):
+        if isinstance(x, dict):
+            if "type" in x.keys():
+                final_x = dict(filter(lambda elem: not isinstance(elem[1], dict), x.items()))
+                commands.append(final_x)
+            else:
+                for key in x:
+                    scan(x[key])
+        elif isinstance(x, list):
+            for i in x:
+                scan(i)
+
+    scan(c)
+    return commands
+
+
 def gen_calls(args):
     (commands, config) = get_commands_and_config_from_args(args)
     if "file" in args and args["file"]:
         c = ic(get_config_from_yamlfile(args["file"]))
+        commands.extend(ic(get_commands_from_config(c)))
+    if "namespace" in args and args["namespace"]:
+        c = ic(get_config_from_kubernetes(args["namespace"], args["selector"]))
         commands.extend(ic(get_commands_from_config(c)))
 
     for command in commands:
