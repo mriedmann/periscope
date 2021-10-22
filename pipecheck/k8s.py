@@ -53,7 +53,11 @@ class K8sPipecheckRepository:
             yield K8sPipecheckCheck(i)
 
 
-def get_config_from_kubernetes(namespace, label_selector=None, repository=K8sPipecheckRepository()):
+def get_config_from_kubernetes(namespace, label_selector=None, repository=None):
+    # not using default value in def to avoid class creation on import
+    if repository is None:
+        repository = K8sPipecheckRepository()
+
     config = {}
     try:
         for check in repository.get_all_checks_from_namespace(namespace, label_selector):
