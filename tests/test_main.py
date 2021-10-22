@@ -4,7 +4,7 @@ import unittest.mock
 
 from parameterized import parameterized
 
-from pipecheck.__main__ import gen_call, print_result, run
+from pipecheck.__main__ import gen_call, get_commands_from_config, print_result, run
 from pipecheck.api import Err, Ok, Warn
 from pipecheck.checks.dns import DnsProbe
 from pipecheck.checks.http import HttpProbe
@@ -61,6 +61,25 @@ class MainTests(unittest.TestCase):
     def test_run_fail(self):
         exit_code = run([(HttpProbe(url="https://httpstat.us/500"), "http")])
         self.assertEqual(exit_code, 1)
+
+    @parameterized.expand(
+        [
+            ({"type": "ping", "host": "8.8.8.8"}, [{"type": "ping", "host": "8.8.8.8"}]),
+            (
+                {"a": {"type": "ping", "host": "8.8.8.8"}, "b": {"type": "tcp", "host": "8.8.8.8", "port": 53}},
+                [{"type": "ping", "host": "8.8.8.8"}, {"type": "tcp", "host": "8.8.8.8", "port": 53}],
+            ),
+            ({"a": {"b": {"c": {"type": "ping", "host": "8.8.8.8"}}}}, [{"type": "ping", "host": "8.8.8.8"}]),
+            (
+                {"a": {"type": "ping", "host": "8.8.8.8", "b": {"type": "tcp", "host": "8.8.8.8", "port": 53}}},
+                [{"type": "ping", "host": "8.8.8.8"}],
+            ),
+        ]
+    )
+    def test_getcommands(self, config, expected_commands):
+        commands = get_commands_from_config(config)
+        for i in range(0, len(expected_commands)):
+            self.assertEqual(commands[i], expected_commands[i])
 
 
 if __name__ == "__main__":
