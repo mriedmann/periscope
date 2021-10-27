@@ -43,6 +43,20 @@ class CheckHttpTests(unittest.TestCase):
         result = HttpProbe(url=target, http_status=status)()
         self.assertIsInstance(result, return_type, result.msg)
 
+    @parameterized.expand(
+        [
+            ("single header", {'X-Test': 'testvalue'}),
+            ("multiple headers", {'X-Test': 'testvalue', 'X-Test2': 'anothertestvalue'}),
+        ]
+    )
+    def test_http_headers(self, msg: str, headers: dict):
+        test_url = "https://httpbin.org/headers"
+        probe = HttpProbe(url=test_url, http_headers=headers, http_method="GET")
+        result = probe()
+        self.assertIsInstance(result, Ok, result.msg)
+        subset = {k:v for k, v in probe._last_response.json()["headers"].items() if k in headers}
+        self.assertDictEqual(subset, headers)
+
 
 if __name__ == "__main__":
     unittest.main()

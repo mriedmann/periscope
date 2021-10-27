@@ -1,5 +1,6 @@
 import certifi
 import requests
+import urllib
 from icecream import ic
 
 from pipecheck.api import CheckResult, Err, Ok, Probe, Warn
@@ -12,15 +13,22 @@ class HttpProbe(Probe):
     http_status: list = list(range(200, 208)) + list(range(300, 308))
     http_method: str = "HEAD"
     http_timeout: int = 5
+    http_headers: dict = {}
     ca_certs: str = certifi.where()
     insecure: bool = False
+    _last_response = None
 
     def __call__(self) -> CheckResult:
         if self.insecure:
             requests.packages.urllib3.disable_warnings()
 
         def request(verify):
-            response = ic(requests.request(self.http_method, self.url, timeout=self.http_timeout, verify=verify))
+            response = ic(
+                requests.request(
+                    self.http_method, self.url, timeout=self.http_timeout, headers=self.http_headers, verify=verify
+                )
+            )
+            self._last_response = response
             if ic(response.status_code) in self.http_status:
                 return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
             return Err(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
