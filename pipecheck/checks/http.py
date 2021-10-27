@@ -1,9 +1,11 @@
+import re
+
 import certifi
 import requests
-import re
 from icecream import ic
 
 from pipecheck.api import CheckResult, Err, Ok, Probe, Warn
+
 
 class HttpProbe(Probe):
     """HTTP request checking on response status (not >=400)"""
@@ -18,7 +20,7 @@ class HttpProbe(Probe):
     ca_certs: str = certifi.where()
     insecure: bool = False
     _last_response = None
-    
+
     def _get_content_checks(self):
         checks = []
         if self.content_regex is not None:
@@ -27,35 +29,35 @@ class HttpProbe(Probe):
             checks.append((f"exact: {self.content_exact}", lambda x: self.content_exact == str(x).strip()))
         return checks
 
+    def _request(self, verify):
+        response = ic(
+            requests.request(self.http_method, self.url, timeout=self.http_timeout, headers=self.http_headers, verify=verify)
+        )
+        self._last_response = response
+        if ic(response.status_code) in self.http_status:
+            checks = self._get_content_checks()
+            if len(checks) > 0:
+                for check in checks:
+                    if not check[1](response.text):
+                        return Err(f"HTTP {self.http_method} to '{self.url}' failed content-check '{check[0]}'")
+                return Ok(
+                    f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}"
+                    + " and passed all content checks"
+                )
+            else:
+                return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
+        return Err(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
+
     def __call__(self) -> CheckResult:
         if self.insecure:
             requests.packages.urllib3.disable_warnings()
 
-        def request(verify):
-            response = ic(
-                requests.request(
-                    self.http_method, self.url, timeout=self.http_timeout, headers=self.http_headers, verify=verify
-                )
-            )
-            self._last_response = response
-            if ic(response.status_code) in self.http_status:
-                checks = self._get_content_checks()
-                if len(checks) > 0:
-                    for check in checks:
-                        ic(check)
-                        if not check[1](ic(response.text)):
-                            return Err(f"HTTP {self.http_method} to '{self.url}' failed content-check '{check[0]}'")
-                    return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code} and passed all content checks")
-                else:
-                    return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
-            return Err(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
-
         try:
-            return request(verify=True)
+            return self._request(verify=True)
         except requests.exceptions.SSLError as e:
             if not self.insecure:
                 return Err(f"HTTP {self.http_method} to '{self.url}' failed ({e})")
-            result = request(verify=False)
+            result = self._request(verify=False)
             msg = f"{result.msg}. SSL Certificate verification failed on '{self.url}' ({e})"
             if isinstance(result, Ok):
                 return Warn(msg)

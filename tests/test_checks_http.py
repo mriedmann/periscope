@@ -46,8 +46,8 @@ class CheckHttpTests(unittest.TestCase):
 
     @parameterized.expand(
         [
-            ("single header", {'X-Test': 'testvalue'}),
-            ("multiple headers", {'X-Test': 'testvalue', 'X-Test2': 'anothertestvalue'}),
+            ("single header", {"X-Test": "testvalue"}),
+            ("multiple headers", {"X-Test": "testvalue", "X-Test2": "anothertestvalue"}),
         ]
     )
     def test_http_headers(self, _: str, headers: dict):
@@ -55,20 +55,20 @@ class CheckHttpTests(unittest.TestCase):
         probe = HttpProbe(url=test_url, http_headers=headers, http_method="GET")
         result = probe()
         self.assertIsInstance(result, Ok, result.msg)
-        subset = {k:v for k, v in probe._last_response.json()["headers"].items() if k in headers}
+        subset = {k: v for k, v in probe._last_response.json()["headers"].items() if k in headers}
         self.assertDictEqual(subset, headers)
 
     @parameterized.expand(
         [
-            ("regex minimal ok", {'content_regex': '.*'}, Ok),
-            ("regex ok", {'content_regex': '{"code": 200.*'}, Ok),
-            ("regex fail", {'content_regex': '.*"THIS DOES NOT EXIST".*'}, Err),
-            ("exact ok", {'content_exact': '{"code": 200, "description": "OK"}'}, Ok),
-            ("exact fail", {'content_exact': 'INVALID CONTENT'}, Err),
-            ("regex ok exact ok", {'content_regex': '.*', 'content_exact': '{"code": 200, "description": "OK"}'}, Ok),
-            ("regex fail exact ok", {'content_regex': '[.*', 'content_exact': '{"code": 200, "description": "OK"}'}, Err),
-            ("regex ok exact fail", {'content_regex': '.*', 'content_exact': '{"code": 200, "DDDdescription": "OK"}'}, Err),
-            ("regex fail exact fail", {'content_regex': '[.*', 'content_exact': '{"code": 200, "DDDdescription": "OK"}'}, Err),
+            ("regex minimal ok", {"content_regex": ".*"}, Ok),
+            ("regex ok", {"content_regex": '{"code": 200.*'}, Ok),
+            ("regex fail", {"content_regex": '.*"THIS DOES NOT EXIST".*'}, Err),
+            ("exact ok", {"content_exact": '{"code": 200, "description": "OK"}'}, Ok),
+            ("exact fail", {"content_exact": "INVALID CONTENT"}, Err),
+            ("regex ok exact ok", {"content_regex": ".*", "content_exact": '{"code": 200, "description": "OK"}'}, Ok),
+            ("regex fail exact ok", {"content_regex": "[.*", "content_exact": '{"code": 200, "description": "OK"}'}, Err),
+            ("regex ok exact fail", {"content_regex": ".*", "content_exact": '{"code": 200, "DDDdescription": "OK"}'}, Err),
+            ("regex fail exact fail", {"content_regex": "[.*", "content_exact": '{"code": 200, "DDDdescription": "OK"}'}, Err),
         ]
     )
     def test_http_content_checks(self, _: str, checks: dict, return_type: Type):
