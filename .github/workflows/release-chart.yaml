@@ -1,9 +1,11 @@
 name: Release Charts
 
 on:
-  push:
-    branches:
-      - main
+  repository_dispatch:
+    types: release-chart
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   release:
