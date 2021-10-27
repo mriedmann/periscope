@@ -1,10 +1,9 @@
 import certifi
 import requests
-import urllib
+import re
 from icecream import ic
 
 from pipecheck.api import CheckResult, Err, Ok, Probe, Warn
-
 
 class HttpProbe(Probe):
     """HTTP request checking on response status (not >=400)"""
@@ -14,9 +13,19 @@ class HttpProbe(Probe):
     http_method: str = "HEAD"
     http_timeout: int = 5
     http_headers: dict = {}
+    content_regex: str = None
+    content_exact: str = None
     ca_certs: str = certifi.where()
     insecure: bool = False
     _last_response = None
+    
+    def _get_content_checks(self):
+        checks = []
+        if self.content_regex is not None:
+            checks.append((f"regex: {self.content_regex}", lambda x: bool(re.match(self.content_regex, x))))
+        if self.content_exact is not None:
+            checks.append((f"exact: {self.content_exact}", lambda x: self.content_exact == str(x).strip()))
+        return checks
 
     def __call__(self) -> CheckResult:
         if self.insecure:
@@ -30,7 +39,15 @@ class HttpProbe(Probe):
             )
             self._last_response = response
             if ic(response.status_code) in self.http_status:
-                return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
+                checks = self._get_content_checks()
+                if len(checks) > 0:
+                    for check in checks:
+                        ic(check)
+                        if not check[1](ic(response.text)):
+                            return Err(f"HTTP {self.http_method} to '{self.url}' failed content-check '{check[0]}'")
+                    return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code} and passed all content checks")
+                else:
+                    return Ok(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
             return Err(f"HTTP {self.http_method} to '{self.url}' returned {response.status_code}")
 
         try:
