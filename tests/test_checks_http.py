@@ -61,14 +61,14 @@ class CheckHttpTests(unittest.TestCase):
     @parameterized.expand(
         [
             ("regex minimal ok", {"content_regex": ".*"}, Ok),
-            ("regex ok", {"content_regex": '{"code": 200.*'}, Ok),
+            ("regex ok", {"content_regex": '{"code":200.*'}, Ok),
             ("regex fail", {"content_regex": '.*"THIS DOES NOT EXIST".*'}, Err),
-            ("exact ok", {"content_exact": '{"code": 200, "description": "OK"}'}, Ok),
+            ("exact ok", {"content_exact": '{"code":200,"description":"OK"}'}, Ok),
             ("exact fail", {"content_exact": "INVALID CONTENT"}, Err),
-            ("regex ok exact ok", {"content_regex": ".*", "content_exact": '{"code": 200, "description": "OK"}'}, Ok),
-            ("regex fail exact ok", {"content_regex": "[.*", "content_exact": '{"code": 200, "description": "OK"}'}, Err),
-            ("regex ok exact fail", {"content_regex": ".*", "content_exact": '{"code": 200, "DDDdescription": "OK"}'}, Err),
-            ("regex fail exact fail", {"content_regex": "[.*", "content_exact": '{"code": 200, "DDDdescription": "OK"}'}, Err),
+            ("regex ok exact ok", {"content_regex": ".*", "content_exact": '{"code":200,"description":"OK"}'}, Ok),
+            ("regex fail exact ok", {"content_regex": "[.*", "content_exact": '{"code":200,"description":"OK"}'}, Err),
+            ("regex ok exact fail", {"content_regex": ".*", "content_exact": '{"code":200,"DDDdescription":"OK"}'}, Err),
+            ("regex fail exact fail", {"content_regex": "[.*", "content_exact": '{"code":200,"DDDdescription":"OK"}'}, Err),
         ]
     )
     def test_http_content_checks(self, _: str, checks: dict, return_type: Type):
