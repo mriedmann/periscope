@@ -21,6 +21,9 @@ REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all c
 CHECK_STATE_LABLES = ["url", "host", "port", "name"]
 CHECK_STATES = {}
 
+#from pympler import tracker
+#tr = tracker.SummaryTracker()
+
 for check in probes:
     labels = [x for x in probes[check].get_args() if x in CHECK_STATE_LABLES]
     CHECK_STATES[check] = Enum(f"{check}_check_state", f"State of check {check}", labels, states=["Ok", "Warn", "Err"])
@@ -145,6 +148,7 @@ if __name__ == "__main__":
         signal.signal(signal.SIGTERM, signal_handler)
 
         while True:
+            #tr.print_diff()
             last_status = run(calls)
             time.sleep(float(args["interval"]))
     else:
