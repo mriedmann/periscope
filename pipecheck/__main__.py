@@ -14,7 +14,6 @@ from pipecheck.api import CheckResult, Err, Ok, Warn
 from pipecheck.checks import probes
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
 from pipecheck.cmdfile import get_config_from_yamlfile
-from pipecheck.k8s import get_config_from_kubernetes
 
 REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all checks")
 

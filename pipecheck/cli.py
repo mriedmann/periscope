@@ -49,17 +49,6 @@ def parse_args(args=None):
 
     parser.add_argument("-p", "--port", nargs="?", default=9000, type=int, help="promtheus exporter port")
 
-    parser.add_argument(
-        "-n", "--namespace", help="if a kubernetes namespace is given, check CRs will be gathers and used as config."
-    )
-
-    parser.add_argument(
-        "-l",
-        "--selector",
-        default=None,
-        help="sets label-selector used to select CRs from k8s. Has to be used with -n or --namespace.",
-    )
-
     for probe in probes:
         parser.add_argument("--%s" % probes[probe].get_type(), nargs="*", help=probes[probe].get_help())
 
