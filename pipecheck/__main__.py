@@ -6,7 +6,6 @@ import signal
 import sys
 import time
 
-from icecream import ic
 from prometheus_client import Enum, Summary, start_http_server
 from termcolor import colored
 
@@ -14,7 +13,6 @@ from pipecheck.api import CheckResult, Err, Ok, Warn
 from pipecheck.checks import probes
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
 from pipecheck.cmdfile import get_config_from_yamlfile
-from pipecheck.k8s import get_config_from_kubernetes
 
 REQUEST_TIME = Summary("checks_processing_seconds", "Time spent processing all checks")
 
@@ -81,11 +79,8 @@ def get_commands_from_config(c):
 def gen_calls(args):
     (commands, config) = get_commands_and_config_from_args(args)
     if "file" in args and args["file"]:
-        c = ic(get_config_from_yamlfile(args["file"]))
-        commands.extend(ic(get_commands_from_config(c)))
-    if "namespace" in args and args["namespace"]:
-        c = ic(get_config_from_kubernetes(args["namespace"], args["selector"]))
-        commands.extend(ic(get_commands_from_config(c)))
+        c = get_config_from_yamlfile(args["file"])
+        commands.extend(get_commands_from_config(c))
 
     for command in commands:
         yield gen_call(command, config)
@@ -103,7 +98,7 @@ def gen_call(command, config):
 @REQUEST_TIME.time()
 def run(calls):
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        launched_checks = ic({executor.submit(cmd[0]): cmd for cmd in calls})
+        launched_checks = {executor.submit(cmd[0]): cmd for cmd in calls}
         return_code = 0
         for future in concurrent.futures.as_completed(launched_checks):
             cmd = launched_checks[future]
@@ -125,14 +120,10 @@ def signal_handler(signal, frame):
 if __name__ == "__main__":
     args = parse_args()
 
-    if not ("verbose" in args and args["verbose"]):
-        ic.disable()
     if not supports_color() or ("no_color" in args and args["no_color"]):
         no_color = True
-    ic(args)
 
     calls = list(gen_calls(args))
-    ic(calls)
     if len(calls) <= 0:
         print_error("No probes specified")
         sys.exit(0)
@@ -149,4 +140,4 @@ if __name__ == "__main__":
             time.sleep(float(args["interval"]))
     else:
         last_status = run(calls)
-    exit(last_status)
+    sys.exit(last_status)

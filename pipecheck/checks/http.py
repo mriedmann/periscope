@@ -2,7 +2,6 @@ import re
 
 import certifi
 import requests
-from icecream import ic
 
 from pipecheck.api import CheckResult, Err, Ok, Probe, Warn
 
@@ -30,11 +29,11 @@ class HttpProbe(Probe):
         return checks
 
     def _request(self, verify):
-        response = ic(
-            requests.request(self.http_method, self.url, timeout=self.http_timeout, headers=self.http_headers, verify=verify)
+        response = requests.request(
+            self.http_method, self.url, timeout=self.http_timeout, headers=self.http_headers, verify=verify
         )
         self._last_response = response
-        if ic(response.status_code) in self.http_status:
+        if response.status_code in self.http_status:
             checks = self._get_content_checks()
             if len(checks) > 0:
                 for check in checks:

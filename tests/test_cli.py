@@ -1,6 +1,5 @@
 import unittest
 
-from icecream import ic
 from parameterized import parameterized
 
 from pipecheck.cli import get_commands_and_config_from_args, parse_args
@@ -27,7 +26,6 @@ class CliTests(unittest.TestCase):
                 {"http": ["https://httpstat.us/200"], "tcp": ["8.8.8.8:53"], "dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
             ),
             (["-i", "30", "-p", "9990"], {"port": 9990, "interval": 30}),
-            (["-n", "test-namespace", "-l", "app==test"], {"namespace": "test-namespace", "selector": "app==test"}),
         ]
     )
     def test_cli_parser(self, params, expected_args):
@@ -57,7 +55,7 @@ class CliTests(unittest.TestCase):
         ]
     )
     def test_cli(self, args, expected_commands):
-        (commands, _) = ic(list(get_commands_and_config_from_args(args)))
+        (commands, _) = list(get_commands_and_config_from_args(args))
         commands.sort(key=lambda x: x["type"])
         expected_commands.sort(key=lambda x: x["type"])
         self.assertSubsetList(commands, expected_commands)
