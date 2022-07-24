@@ -2,8 +2,8 @@
 pwd = $(shell pwd)
 version = $(shell poetry version -s)
 short_version = $(shell poetry version -s | cut -d'+' -d'-' -f1)
-helm_version = $(shell yq r helm/pipecheck/Chart.yaml 'version')
-helm_short_version = $(shell yq r helm/pipecheck/Chart.yaml 'version' | cut -d'+' -d'-' -f1)
+helm_version = $(shell cat helm/pipecheck/Chart.yaml | yq '.version')
+helm_short_version = $(shell cat helm/pipecheck/Chart.yaml | yq '.version' | cut -d'+' -d'-' -f1)
 
 init:
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
