@@ -81,9 +81,6 @@ def gen_calls(args):
     if "file" in args and args["file"]:
         c = get_config_from_yamlfile(args["file"])
         commands.extend(get_commands_from_config(c))
-    if "namespace" in args and args["namespace"]:
-        c = get_config_from_kubernetes(args["namespace"], args["selector"])
-        commands.extend(get_commands_from_config(c))
 
     for command in commands:
         yield gen_call(command, config)
