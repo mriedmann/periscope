@@ -122,6 +122,10 @@ if __name__ == "__main__":
 
     if not supports_color() or ("no_color" in args and args["no_color"]):
         no_color = True
+    
+    sys.tracebacklimit = 0
+    if "verbose" in args and args["verbose"]:
+        sys.tracebacklimit = None
 
     calls = list(gen_calls(args))
     if len(calls) <= 0:
@@ -130,7 +134,7 @@ if __name__ == "__main__":
 
     last_status = 0
     if "interval" in args and args["interval"]:
-        start_http_server(args["port"])
+        start_http_server(args["prom_port"])
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)

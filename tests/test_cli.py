@@ -17,6 +17,7 @@ class CliTests(unittest.TestCase):
         [
             (["--http", "https://httpstat.us/200"], {"http": ["https://httpstat.us/200"]}),
             (["--tcp", "8.8.8.8:53"], {"tcp": ["8.8.8.8:53"]}),
+            (["--mysql", "user:password@127.0.0.1:1234/dbname"], {"mysql": ["user:password@127.0.0.1:1234/dbname"]}),
             (["--dns", "one.one.one.one"], {"dns": ["one.one.one.one"]}),
             (["--dns", "one.one.one.one=1.1.1.1"], {"dns": ["one.one.one.one=1.1.1.1"]}),
             (["--ping", "8.8.8.8"], {"ping": ["8.8.8.8"]}),
@@ -25,7 +26,7 @@ class CliTests(unittest.TestCase):
                 ["--http", "https://httpstat.us/200", "--tcp", "8.8.8.8:53", "--dns", "one.one.one.one=1.1.1.1,1.0.0.1"],
                 {"http": ["https://httpstat.us/200"], "tcp": ["8.8.8.8:53"], "dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
             ),
-            (["-i", "30", "-p", "9990"], {"port": 9990, "interval": 30}),
+            (["-i", "30", "-p", "9990"], {"prom_port": 9990, "interval": 30}),
         ]
     )
     def test_cli_parser(self, params, expected_args):
@@ -40,6 +41,11 @@ class CliTests(unittest.TestCase):
                 {"dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
                 [{"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1", "1.0.0.1"]}],
             ),
+            ({"mysql": ["user:password@127.0.0.1:1234/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "port": 1234, "database": "dbname", "user": "user", "password": "password"}]),
+            ({"mysql": ["mysql://user:password@127.0.0.1:1234/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "port": 1234, "database": "dbname", "user": "user", "password": "password"}]),
+            ({"mysql": ["user:password@127.0.0.1/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "database": "dbname", "user": "user", "password": "password"}]),
+            ({"mysql": ["user@127.0.0.1/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "database": "dbname", "user": "user"}]),
+            ({"mysql": ["user@127.0.0.1"]}, [{"type": "mysql", "host": "127.0.0.1", "user": "user"}]),
             ({"dns": ["one.one.one.one"]}, [{"type": "dns", "name": "one.one.one.one", "ips": []}]),
             ({"dns": ["one.one.one.one=1.1.1.1"]}, [{"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1"]}]),
             ({"ping": ["8.8.8.8"]}, [{"type": "ping", "host": "8.8.8.8"}]),

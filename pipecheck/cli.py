@@ -1,4 +1,5 @@
 import argparse
+from urllib.parse import urlparse
 
 from pipecheck import __version__
 from pipecheck.checks import probes
@@ -45,7 +46,7 @@ def parse_args(args=None):
         help="don't exit but repeat checks in given interval. Also activates prometheus exporter",
     )
 
-    parser.add_argument("-p", "--port", nargs="?", default=9000, type=int, help="promtheus exporter port")
+    parser.add_argument("-p", "--prom-port", nargs="?", default=9000, type=int, help="promtheus exporter port")
 
     for probe in probes:
         parser.add_argument("--%s" % probes[probe].get_type(), nargs="*", help=probes[probe].get_help())
@@ -70,6 +71,17 @@ def parse_tcp(x):
     (host, port) = x.split(":")
     return {"type": "tcp", "host": host, "port": int(port)}
 
+def parse_mysql(x):
+    if not x.startswith("mysql://"):
+        x = "mysql://" + x
+    try:
+        u = urlparse(x)
+        o = {"type": "mysql", "host": u.hostname, "user": u.username, "password": u.password, "database": str(u.path).removeprefix("/")}
+        if u.port:
+            o["port"] = int(u.port)
+        return o
+    except Exception as e:
+        raise Exception(f"Unable to parse mysql-probe target-url ({e})") from None
 
 def parse_http(x):
     return {"type": "http", "url": x}
