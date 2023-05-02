@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipecheck"
-version = "0.4.1"
+version = "0.4.2-1+2f07042"
 description = "This simple tool can be used to verify the state of a system's context."
 authors = ["Michael Riedmann <michael_riedmann@live.com>"]
 license = "MIT"
@@ -29,15 +29,18 @@ parameterized = "^0.8.1"
 wheel = "^0.40.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry-dynamic-versioning]
-enable = false
+enable = true
 vcs = "git"
 style = "semver"
-format = "{base}"
+format-jinja = "{% if distance == 0 %}{{ base }}{% else %}{{ base }}-{{ distance }}+{{ commit }}{% endif %}"
 bump = true
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["*/__init__.py"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

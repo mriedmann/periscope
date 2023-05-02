@@ -24,6 +24,7 @@ jobs:
         make init
         source $HOME/.poetry/env
         make update
+        make bump
     - name: Run tests
       run: |
         source $HOME/.poetry/env
