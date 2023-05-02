@@ -22,12 +22,10 @@ jobs:
     - name: Init & Update
       run: |
         make init
-        source $HOME/.poetry/env
         make update
         make bump
     - name: Run tests
       run: |
-        source $HOME/.poetry/env
         make test
         make test_image
     - name: Publish to PyPi
@@ -35,12 +33,10 @@ jobs:
       env:
         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
       run: |
-        source $HOME/.poetry/env
         make publish
     - name: Publish to GHCR
       continue-on-error: true
       run: |
-        source $HOME/.poetry/env
         make publish_image
 
   release-chart:
