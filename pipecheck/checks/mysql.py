@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pymysql
 
 from pipecheck.api import CheckResult, Err, Ok, Probe
@@ -8,7 +10,7 @@ class MysqlProbe(Probe):
 
     host: str = ""
     port: int = 3306
-    database: str | None = None
+    database: Optional[str] = None
     user: str = ""
     password: str = ""
     timeout: int = 5
