@@ -3,7 +3,6 @@ from argparse import Action
 
 class BooleanOptionalAction(Action):
     def __init__(self, option_strings, dest, default=None, type=None, choices=None, required=False, help=None, metavar=None):
-
         _option_strings = []
         for option_string in option_strings:
             _option_strings.append(option_string)

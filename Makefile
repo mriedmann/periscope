@@ -6,33 +6,16 @@ helm_version = $(shell cat helm/pipecheck/Chart.yaml | yq '.version')
 helm_short_version = $(shell cat helm/pipecheck/Chart.yaml | yq '.version' | cut -d'+' -d'-' -f1)
 
 init:
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+	pip install poetry
+	poetry self add "poetry-dynamic-versioning[plugin]"
 
-check-bump:
+check-bump: init
 	which yq || { echo "yq not installed!"; exit 1; }
-	which gh || { echo "gh (github cli) not installed!"; exit 1; }
-	[ "$(shell git rev-parse --abbrev-ref HEAD)" == "main" ] || { echo "bumping only possible on main branch"; exit 1; }
-
-bump-major: check-bump
-	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$((a+1)).0.0"))
-	poetry version $(new_version)
-	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
-	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
-	git commit -a -m "bump major-version from $(version) to $(new_version)"
+	which git || { echo "git not installed!"; exit 1; }
 
 bump: check-bump
-	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$((b+1)).0"))
-	poetry version $(new_version)
-	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
-	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
-	git commit -a -m "bump minor-version from $(version) to $(new_version)"
-
-bump-patch: check-bump
-	$(eval new_version = $(shell IFS=. read -r a b c<<<"$(short_version)";echo "$$a.$$b.$$((c+1))"))
-	poetry version $(new_version)
-	sed -i 's/appVersion: .*/appVersion: $(new_version)/' helm/pipecheck/Chart.yaml
-	echo "__version__ = \"$(new_version)\"" > pipecheck/__init__.py
-	git commit -a -m "bump patch-version from $(version) to $(new_version)"
+	poetry dynamic-versioning
+	sed -i 's/appVersion: .*/appVersion: $(short_version)/' helm/pipecheck/Chart.yaml
 
 helm-bump-major: check-bump
 	$(eval helm_new_version = $(shell IFS=. read -r a b c<<<"$(helm_short_version)";echo "$$((a+1)).0.0"))
@@ -56,9 +39,9 @@ release:
 update:
 	poetry update
 	poetry export --output requirements.txt
-	poetry export --dev --output requirements.dev.txt
+	poetry export --with dev --output requirements.dev.txt
 
-install: init
+install: bump
 	poetry install
 
 lint: install
