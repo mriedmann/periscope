@@ -71,17 +71,25 @@ def parse_tcp(x):
     (host, port) = x.split(":")
     return {"type": "tcp", "host": host, "port": int(port)}
 
+
 def parse_mysql(x):
     if not x.startswith("mysql://"):
         x = "mysql://" + x
     try:
         u = urlparse(x)
-        o = {"type": "mysql", "host": u.hostname, "user": u.username, "password": u.password, "database": str(u.path).removeprefix("/")}
+        o = {
+            "type": "mysql",
+            "host": u.hostname,
+            "user": u.username,
+            "password": u.password,
+            "database": str(u.path).removeprefix("/"),
+        }
         if u.port:
             o["port"] = int(u.port)
         return o
     except Exception as e:
         raise Exception(f"Unable to parse mysql-probe target-url ({e})") from None
+
 
 def parse_http(x):
     return {"type": "http", "url": x}

@@ -1,5 +1,5 @@
-import unittest
 import os
+import unittest
 from typing import Type
 
 from parameterized import parameterized
@@ -7,8 +7,9 @@ from parameterized import parameterized
 from pipecheck.api import Err, Ok, Warn
 from pipecheck.checks.http import HttpProbe
 
-httpstat_baseurl = os.getenv('HTTPSTAT_BASEURL') or "https://httpstat.us"
-badssl_baseurl = os.getenv('BADSSL_BASEURL') or "https://self-signed.badssl.com"
+httpstat_baseurl = os.getenv("HTTPSTAT_BASEURL") or "https://httpstat.us"
+badssl_baseurl = os.getenv("BADSSL_BASEURL") or "https://self-signed.badssl.com"
+
 
 class CheckHttpTests(unittest.TestCase):
     @parameterized.expand(
@@ -56,9 +57,8 @@ class CheckHttpTests(unittest.TestCase):
     def test_http_headers(self, _: str, headers: dict):
         test_url = f"{httpstat_baseurl}/200"
         probe = HttpProbe(
-            url=test_url, 
-            http_headers={ f"X-HttpStatus-Response-{k}":v for k,v in headers.items() }, 
-            http_method="GET")
+            url=test_url, http_headers={f"X-HttpStatus-Response-{k}": v for k, v in headers.items()}, http_method="GET"
+        )
         result = probe()
         self.assertIsInstance(result, Ok, result.msg)
         subset = {k: v for k, v in probe._last_response.headers.items() if k in headers}

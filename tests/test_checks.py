@@ -5,8 +5,8 @@ from parameterized import parameterized
 
 from pipecheck.api import Err, Ok
 from pipecheck.checks.icmp import PingProbe
-from pipecheck.checks.tcp import TcpProbe
 from pipecheck.checks.mysql import MysqlProbe
+from pipecheck.checks.tcp import TcpProbe
 
 
 class CheckTests(unittest.TestCase):
@@ -20,13 +20,15 @@ class CheckTests(unittest.TestCase):
         result = TcpProbe(host=target, port=port, tcp_timeout=1.0)()
         self.assertIsInstance(result, return_type, result.msg)
 
-    @parameterized.expand([
-        ("db4free.net", 3306, "pipecheck", "x9$9nvKL9Y6jCem", Ok),
-        ("db4free.net", 33300, "pipecheck", "x9$9nvKL9Y6jCem", Err),
-        ("localhost", 3306, "pipecheck", "x9$9nvKL9Y6jCem", Err),
-        ("db4free.net", 3306, "pipecheck_err", "x9$9nvKL9Y6jCem", Err),
-        ("db4free.net", 3306, "pipecheck", "WRONGPW", Err),
-    ])
+    @parameterized.expand(
+        [
+            ("db4free.net", 3306, "pipecheck", "x9$9nvKL9Y6jCem", Ok),
+            ("db4free.net", 33300, "pipecheck", "x9$9nvKL9Y6jCem", Err),
+            ("localhost", 3306, "pipecheck", "x9$9nvKL9Y6jCem", Err),
+            ("db4free.net", 3306, "pipecheck_err", "x9$9nvKL9Y6jCem", Err),
+            ("db4free.net", 3306, "pipecheck", "WRONGPW", Err),
+        ]
+    )
     def test_mysql(self, target, port, user, password, return_type: Type):
         result = MysqlProbe(host=target, port=port, user=user, password=password)()
         self.assertIsInstance(result, return_type, result.msg)

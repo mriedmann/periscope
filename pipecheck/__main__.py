@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     if not supports_color() or ("no_color" in args and args["no_color"]):
         no_color = True
-    
+
     sys.tracebacklimit = 0
     if "verbose" in args and args["verbose"]:
         sys.tracebacklimit = None

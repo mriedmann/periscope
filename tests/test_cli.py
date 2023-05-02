@@ -41,10 +41,40 @@ class CliTests(unittest.TestCase):
                 {"dns": ["one.one.one.one=1.1.1.1,1.0.0.1"]},
                 [{"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1", "1.0.0.1"]}],
             ),
-            ({"mysql": ["user:password@127.0.0.1:1234/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "port": 1234, "database": "dbname", "user": "user", "password": "password"}]),
-            ({"mysql": ["mysql://user:password@127.0.0.1:1234/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "port": 1234, "database": "dbname", "user": "user", "password": "password"}]),
-            ({"mysql": ["user:password@127.0.0.1/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "database": "dbname", "user": "user", "password": "password"}]),
-            ({"mysql": ["user@127.0.0.1/dbname"]}, [{"type": "mysql", "host": "127.0.0.1", "database": "dbname", "user": "user"}]),
+            (
+                {"mysql": ["user:password@127.0.0.1:1234/dbname"]},
+                [
+                    {
+                        "type": "mysql",
+                        "host": "127.0.0.1",
+                        "port": 1234,
+                        "database": "dbname",
+                        "user": "user",
+                        "password": "password",
+                    }
+                ],
+            ),
+            (
+                {"mysql": ["mysql://user:password@127.0.0.1:1234/dbname"]},
+                [
+                    {
+                        "type": "mysql",
+                        "host": "127.0.0.1",
+                        "port": 1234,
+                        "database": "dbname",
+                        "user": "user",
+                        "password": "password",
+                    }
+                ],
+            ),
+            (
+                {"mysql": ["user:password@127.0.0.1/dbname"]},
+                [{"type": "mysql", "host": "127.0.0.1", "database": "dbname", "user": "user", "password": "password"}],
+            ),
+            (
+                {"mysql": ["user@127.0.0.1/dbname"]},
+                [{"type": "mysql", "host": "127.0.0.1", "database": "dbname", "user": "user"}],
+            ),
             ({"mysql": ["user@127.0.0.1"]}, [{"type": "mysql", "host": "127.0.0.1", "user": "user"}]),
             ({"dns": ["one.one.one.one"]}, [{"type": "dns", "name": "one.one.one.one", "ips": []}]),
             ({"dns": ["one.one.one.one=1.1.1.1"]}, [{"type": "dns", "name": "one.one.one.one", "ips": ["1.1.1.1"]}]),
