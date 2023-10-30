@@ -13,7 +13,7 @@ netaddr = "^0.8.0"
 prometheus-client = "^0.11.0"
 termcolor = "^1.1.0"
 urllib3 = "^1.26.5"
-PyYAML = "^5.4.1"
+PyYAML = "^6.0.1"
 requests = "^2.26.0"
 pymysql = "^1.0.3"
 
