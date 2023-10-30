@@ -55,11 +55,11 @@ class MainTests(unittest.TestCase):
         self.assertDictEqual(call[0].__dict__, expected_call[1])
 
     def test_run_success(self):
-        exit_code = run([(HttpProbe(url="https://httpstat.us/200"), "http")])
+        exit_code = run([(HttpProbe(url="https://httpbin.org/status/200"), "http")])
         self.assertEqual(exit_code, 0)
 
     def test_run_fail(self):
-        exit_code = run([(HttpProbe(url="https://httpstat.us/500"), "http")])
+        exit_code = run([(HttpProbe(url="https://httpbin.org/status/500"), "http")])
         self.assertEqual(exit_code, 1)
 
     @parameterized.expand(

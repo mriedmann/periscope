@@ -7,17 +7,17 @@ from parameterized import parameterized
 from pipecheck.api import Err, Ok, Warn
 from pipecheck.checks.http import HttpProbe
 
-httpstat_baseurl = os.getenv("HTTPSTAT_BASEURL") or "https://httpstat.us"
+httpbin_baseurl = os.getenv("HTTPSTAT_BASEURL") or "https://httpbin.org"
 badssl_baseurl = os.getenv("BADSSL_BASEURL") or "https://self-signed.badssl.com"
 
 
 class CheckHttpTests(unittest.TestCase):
     @parameterized.expand(
         [
-            (f"{httpstat_baseurl}/200", Ok),
-            (f"{httpstat_baseurl}/301", Ok),
-            (f"{httpstat_baseurl}/404", Err),
-            (f"{httpstat_baseurl}/500", Err),
+            (f"{httpbin_baseurl}/status/200", Ok),
+            (f"{httpbin_baseurl}/status/301", Ok),
+            (f"{httpbin_baseurl}/status/404", Err),
+            (f"{httpbin_baseurl}/status/500", Err),
             (f"{badssl_baseurl}/", Warn),
             (f"{badssl_baseurl}/notfound", Err),
         ]
@@ -28,8 +28,8 @@ class CheckHttpTests(unittest.TestCase):
 
     @parameterized.expand(
         [
-            (f"{httpstat_baseurl}/200", Ok),
-            (f"{httpstat_baseurl}/500", Err),
+            (f"{httpbin_baseurl}/status/200", Ok),
+            (f"{httpbin_baseurl}/status/500", Err),
             (f"{badssl_baseurl}/", Err),
         ]
     )
@@ -39,9 +39,9 @@ class CheckHttpTests(unittest.TestCase):
 
     @parameterized.expand(
         [
-            (f"{httpstat_baseurl}/200", [200], Ok),
-            (f"{httpstat_baseurl}/300", [200, 301], Err),
-            (f"{httpstat_baseurl}/400", [200, 400], Ok),
+            (f"{httpbin_baseurl}/status/200", [200], Ok),
+            (f"{httpbin_baseurl}/status/300", [200, 301], Err),
+            (f"{httpbin_baseurl}/status/400", [200, 400], Ok),
         ]
     )
     def test_http_status(self, target, status, return_type: Type):
@@ -55,13 +55,14 @@ class CheckHttpTests(unittest.TestCase):
         ]
     )
     def test_http_headers(self, _: str, headers: dict):
-        test_url = f"{httpstat_baseurl}/200"
+        test_url = f"{httpbin_baseurl}/headers"
         probe = HttpProbe(
-            url=test_url, http_headers={f"X-HttpStatus-Response-{k}": v for k, v in headers.items()}, http_method="GET"
+            url=test_url, http_headers={f"{k}": v for k, v in headers.items()}, http_method="GET"
         )
         result = probe()
         self.assertIsInstance(result, Ok, result.msg)
-        subset = {k: v for k, v in probe._last_response.headers.items() if k in headers}
+        subset = {k: v for k, v in probe._last_response.json()['headers'].items() if k in headers}
+        print(subset)
         self.assertDictEqual(subset, headers)
 
     @parameterized.expand(
@@ -78,8 +79,8 @@ class CheckHttpTests(unittest.TestCase):
         ]
     )
     def test_http_content_checks(self, _: str, checks: dict, return_type: Type):
-        test_url = f"{httpstat_baseurl}/200"
-        probe = HttpProbe(url=test_url, http_method="GET", http_headers={"Accept": "application/json"}, **checks)
+        test_url = f"{httpbin_baseurl}/base64/eyJjb2RlIjoyMDAsImRlc2NyaXB0aW9uIjoiT0sifQ%3D%3D"
+        probe = HttpProbe(url=test_url, http_method="GET", http_headers={"Accept": "text/html"}, **checks)
         result = probe()
         print(probe._last_response.text)
         self.assertIsInstance(result, return_type, result.msg)
