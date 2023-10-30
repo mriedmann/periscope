@@ -56,12 +56,10 @@ class CheckHttpTests(unittest.TestCase):
     )
     def test_http_headers(self, _: str, headers: dict):
         test_url = f"{httpbin_baseurl}/headers"
-        probe = HttpProbe(
-            url=test_url, http_headers={f"{k}": v for k, v in headers.items()}, http_method="GET"
-        )
+        probe = HttpProbe(url=test_url, http_headers={f"{k}": v for k, v in headers.items()}, http_method="GET")
         result = probe()
         self.assertIsInstance(result, Ok, result.msg)
-        subset = {k: v for k, v in probe._last_response.json()['headers'].items() if k in headers}
+        subset = {k: v for k, v in probe._last_response.json()["headers"].items() if k in headers}
         print(subset)
         self.assertDictEqual(subset, headers)
 
